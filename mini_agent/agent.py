@@ -362,8 +362,20 @@ class Agent:
                         error=f"Unknown tool: {function_name}",
                     )
                 else:
-                    tool = self.tools[function_name]
-                    result = await tool.execute(**arguments)
+                    try:
+                        tool = self.tools[function_name]
+                        result = await tool.execute(**arguments)
+                    except Exception as e:
+                        # 捕获工具执行中的所有异常，转换为失败的 ToolResult
+                        import traceback
+
+                        error_detail = f"{type(e).__name__}: {str(e)}"
+                        error_trace = traceback.format_exc()
+                        result = ToolResult(
+                            success=False,
+                            content="",
+                            error=f"Tool execution failed: {error_detail}\n\nTraceback:\n{error_trace}",
+                        )
 
                 # 记录工具执行结果日志
                 self.logger.log_tool_result(
