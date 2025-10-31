@@ -1,0 +1,37 @@
+# Mini Agent Configuration Example
+# 复制此文件为 mini_agent/config.yaml 并填入你的配置
+
+# ===== LLM 配置 =====
+# MiniMax API Configuration
+api_key: "YOUR_API_KEY_HERE"  # 替换为你的 MiniMax API Key
+api_base: "https://api.minimax.io/anthropic"
+model: "MiniMax-M2"
+
+# ===== 重试配置 =====
+retry:
+  enabled: true           # 是否启用重试机制
+  max_retries: 3          # 最大重试次数
+  initial_delay: 1.0      # 初始延迟时间（秒）
+  max_delay: 60.0         # 最大延迟时间（秒）
+  exponential_base: 2.0   # 指数退避基数（delay = initial_delay * base^attempt）
+
+# ===== Agent 配置 =====
+max_steps: 50  # 最大执行步数
+workspace_dir: "./workspace"  # 工作目录
+system_prompt_path: "system_prompt.txt"  # system prompt 文件路径
+
+# ===== 工具配置 =====
+tools:
+  # 基础工具开关
+  enable_file_tools: true  # 文件读写编辑工具（ReadTool, WriteTool, EditTool）
+  enable_bash: true        # Bash 命令执行工具
+  enable_note: true        # 会话笔记工具（SessionNoteTool）
+  
+  # Claude Skills
+  enable_skills: true      # 是否启用 Skills
+  skills_dir: "./skills"   # Skills 目录路径
+  
+  # MCP 工具
+  enable_mcp: true         # 是否启用 MCP 工具
+  mcp_config_path: "mcp.json"  # MCP 配置文件路径
+                           # 注意：MCP 工具的 API Keys 在 mcp.json 中配置

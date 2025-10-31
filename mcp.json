@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "minimax_search": {
+      "description": "MiniMax Search - 强大的网页搜索和智能浏览 ⭐",
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "https://github.com/MiniMax-AI/minimax_search",
+        "minimax-search"
+      ],
+      "env": {
+        "JINA_API_KEY": "",
+        "SERPER_API_KEY": "",
+        "BRAVE_API_KEY": "",
+        "MINIMAX_TOKEN": "",
+        "BILLING_TOKEN": ""
+      },
+      "disabled": true
+    },
+    "memory": {
+      "description": "Memory - 知识图谱记忆系统（基于图数据库的长期记忆）",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "disabled": false
+    }
+  }
+}

@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Workspace
+workspace/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config (contains API keys)
+config.yaml
+
+# test file
+demo.py
+hello.py
+test.txt
+hello_world.py
+demo_test.txt
