@@ -465,7 +465,8 @@ pytest tests/test_agent.py tests/test_note_tool.py -v
 ## 🔗 参考资源
 
 - MiniMax API: https://platform.minimaxi.com/document
-- Anthropic API: https://docs.anthropic.com/claude/reference  
+- MiniMax-M2: https://github.com/MiniMax-AI/MiniMax-M2
+- Anthropic API: https://docs.anthropic.com/claude/reference
 - Claude Skills: https://github.com/anthropics/skills
 - MCP Servers: https://github.com/modelcontextprotocol/servers
 

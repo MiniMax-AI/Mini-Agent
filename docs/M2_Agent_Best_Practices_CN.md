@@ -20,7 +20,7 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/MiniMax-AI/Mini-Agent
+git clone https://github.com/MiniMax-AI/Mini-Agent mini-agent
 cd mini-agent
 
 # 安装 uv（如果还没有）
@@ -480,7 +480,7 @@ This skill helps you work with PDF files...
 # mini_agent/tools/skill_loader.py
 class SkillLoader:
     """加载和管理 Claude Skills"""
-    
+
     def load_skills(self, skills_dir: Path) -> List[Dict]:
         """扫描 skills 目录，加载所有 SKILL.md"""
         skills = []
@@ -497,11 +497,11 @@ class SkillLoader:
 # mini_agent/tools/skill_tool.py
 class SkillTool(Tool):
     """动态加载并使用 Skills"""
-    
+
     async def execute(self, skill_name: str, context: str):
         """加载指定 skill 并注入到 Agent 上下文"""
         skill = self.loader.get_skill(skill_name)
-        
+
         # 将 skill 内容注入到 system prompt
         enhanced_prompt = f"""
 {self.base_prompt}
@@ -510,7 +510,7 @@ You now have access to the {skill["name"]} skill.
 
 {skill["content"]}
 """
-        
+
         return enhanced_prompt
 ```
 
@@ -1220,7 +1220,7 @@ if loop_detector.detect_loop(f"{tool_name}:{arguments}"):
 **快速上手**:
 ```bash
 # 克隆项目
-git clone https://github.com/MiniMax-AI/Mini-Agent
+git clone https://github.com/MiniMax-AI/Mini-Agent mini-agent
 cd mini-agent
 
 # 安装依赖
@@ -1236,9 +1236,9 @@ uv run python main.py
 
 ---
 
-**文档版本**：v1.2  
-**最后更新**：2025-10-27  
-**适用模型**：MiniMax M2 系列  
+**文档版本**：v1.2
+**最后更新**：2025-10-27
+**适用模型**：MiniMax M2 系列
 **基于项目**：mini-agent
 
 **版权声明**：© 2025 MiniMax. All rights reserved.

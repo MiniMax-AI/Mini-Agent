@@ -20,7 +20,7 @@ First, clone the mini-agent example project:
 
 ```bash
 # Clone the project
-git clone https://github.com/MiniMax-AI/Mini-Agent
+git clone https://github.com/MiniMax-AI/Mini-Agent mini-agent
 cd mini-agent
 
 # Install uv (if you haven't already)
@@ -480,7 +480,7 @@ In mini-agent, Skills are integrated through `SkillLoader` and `SkillTool`:
 # mini_agent/tools/skill_loader.py
 class SkillLoader:
     """Load and manage Claude Skills"""
-    
+
     def load_skills(self, skills_dir: Path) -> List[Dict]:
         """Scan skills directory and load all SKILL.md files"""
         skills = []
@@ -497,11 +497,11 @@ class SkillLoader:
 # mini_agent/tools/skill_tool.py
 class SkillTool(Tool):
     """Dynamically load and use Skills"""
-    
+
     async def execute(self, skill_name: str, context: str):
         """Load specified skill and inject into Agent context"""
         skill = self.loader.get_skill(skill_name)
-        
+
         # Inject skill content into system prompt
         enhanced_prompt = f"""
 {self.base_prompt}
@@ -510,7 +510,7 @@ You now have access to the {skill["name"]} skill.
 
 {skill["content"]}
 """
-        
+
         return enhanced_prompt
 ```
 
@@ -1220,7 +1220,7 @@ See the [mini-agent](https://github.com/MiniMax-AI/Mini-Agent) project, which in
 **Quick Start**:
 ```bash
 # Clone the project
-git clone https://github.com/MiniMax-AI/Mini-Agent
+git clone https://github.com/MiniMax-AI/Mini-Agent mini-agent
 cd mini-agent
 
 # Install dependencies
@@ -1236,9 +1236,9 @@ uv run python main.py
 
 ---
 
-**Document Version**: v1.2  
-**Last Updated**: 2025-10-27  
-**Applicable Models**: MiniMax M2 Series  
+**Document Version**: v1.2
+**Last Updated**: 2025-10-27
+**Applicable Models**: MiniMax M2 Series
 **Based on Project**: mini-agent
 
 **Copyright**: © 2025 MiniMax. All rights reserved.
