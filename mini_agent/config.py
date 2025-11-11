@@ -61,6 +61,27 @@ class Config(BaseModel):
     tools: ToolsConfig
 
     @classmethod
+    def load(cls) -> "Config":
+        """Load configuration using default search locations.
+
+        Returns:
+            Config instance loaded from the highest-priority config file.
+
+        Raises:
+            FileNotFoundError: if no config file is found
+        """
+        config_path = cls.find_config_file("config.yaml")
+        if not config_path:
+            # Provide a clear error pointing users to the example
+            example = cls.get_package_dir() / "config" / "config-example.yaml"
+            raise FileNotFoundError(
+                f"Configuration file not found. Create one at mini_agent/config/config.yaml or ~/.mini-agent/config/config.yaml. "
+                f"See example: {example}"
+            )
+
+        return cls.from_yaml(config_path)
+
+    @classmethod
     def from_yaml(cls, config_path: str | Path) -> "Config":
         """Load configuration from YAML file
 

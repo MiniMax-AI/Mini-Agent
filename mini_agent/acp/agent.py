@@ -81,7 +81,8 @@ class MiniMaxACPAgent:
         logger.info("Initializing ACP agent (protocol v%s)", params.protocolVersion)
 
         return InitializeResponse(
-            protocolVersion=PROTOCOL_VERSION,
+            # Some versions of the ACP Python SDK expect a string here
+            protocolVersion=str(PROTOCOL_VERSION),
             agentCapabilities=AgentCapabilities(
                 supportsLoadSession=False,  # Session persistence not yet implemented
                 supportsSetMode=False,  # Mode switching not yet implemented
@@ -164,7 +165,7 @@ class MiniMaxACPAgent:
         session = await self._session_manager.get_session(params.sessionId)
         if not session:
             logger.error("Session not found: %s", params.sessionId)
-            return PromptResponse(stopReason="error")
+            return PromptResponse(stopReason="refusal")
 
         logger.info("Processing prompt for session: %s", params.sessionId)
 
@@ -192,7 +193,8 @@ class MiniMaxACPAgent:
                 params.sessionId,
                 update_agent_message(text_block(f"Error: {str(e)}")),
             )
-            return PromptResponse(stopReason="error")
+            # 'error' is not a valid stopReason per ACP schema
+            return PromptResponse(stopReason="refusal")
 
     async def cancel(self, params: CancelNotification) -> None:
         """Cancel ongoing operations for a session.
@@ -255,10 +257,10 @@ class MiniMaxACPAgent:
             # Generate LLM response
             # Note: Agent stores LLM client as 'llm' attribute
             try:
-                # Convert tools dict to list for LLM client
-                tools_list = list(agent.tools.values())
+                # Convert tool objects to API schemas for LLM client
+                tools_schema = [t.to_schema() for t in agent.tools.values()]
                 response = await agent.llm.generate(
-                    messages=session.messages, tools=tools_list
+                    messages=session.messages, tools=tools_schema
                 )
             except Exception as e:
                 logger.exception("LLM generation error: %s", e)
@@ -266,7 +268,8 @@ class MiniMaxACPAgent:
                     session.session_id,
                     update_agent_message(text_block(f"LLM Error: {str(e)}")),
                 )
-                return "error"
+                # Map internal error to a valid ACP stopReason
+                return "refusal"
 
             # Stream thinking content if present (MiniMax feature)
             if response.thinking:
@@ -303,7 +306,8 @@ class MiniMaxACPAgent:
 
         # Max steps reached
         logger.warning("Max steps reached for session: %s", session.session_id)
-        return "max_steps"
+        # Use ACP-compliant stop reason value
+        return "max_turn_requests"
 
     async def _execute_tool_with_streaming(self, session, tool_call) -> None:
         """Execute a tool call with streaming updates.
@@ -315,14 +319,14 @@ class MiniMaxACPAgent:
         tool_name = tool_call.function.name
         tool_id = tool_call.id
 
-        # Start tool call
+        # Start tool call (send raw_input to preserve structured args)
         await self._send_update(
             session.session_id,
             start_tool_call(
                 tool_id,
                 f"Executing {tool_name}",
-                name=tool_name,
-                arguments=tool_call.function.arguments,
+                status="in_progress",
+                raw_input=tool_call.function.arguments,
             ),
         )
 
@@ -369,6 +373,11 @@ class MiniMaxACPAgent:
                     tool_id,
                     status=status,
                     content=[tool_content(text_block(result_text))],
+                    raw_output=(getattr(result, "model_dump", None) or getattr(result, "dict", None) or (lambda: None))() or {
+                        "success": getattr(result, "success", None),
+                        "content": getattr(result, "content", None),
+                        "error": getattr(result, "error", None),
+                    },
                 ),
             )
 

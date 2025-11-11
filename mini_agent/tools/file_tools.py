@@ -3,7 +3,10 @@
 from pathlib import Path
 from typing import Any
 
-import tiktoken
+try:
+    import tiktoken  # type: ignore
+except Exception:  # pragma: no cover - optional dependency at runtime
+    tiktoken = None  # Fallback when network or package data unavailable
 
 from .base import Tool, ToolResult
 
@@ -29,16 +32,25 @@ def truncate_text_by_tokens(
         >>> truncated = truncate_text_by_tokens(text, 64000)
         >>> print(truncated)
     """
-    encoding = tiktoken.get_encoding("cl100k_base")
-    token_count = len(encoding.encode(text))
+    # Try accurate tokenization when available; otherwise fall back to chars
+    try:
+        if tiktoken is not None:
+            encoding = tiktoken.get_encoding("cl100k_base")
+            token_count = len(encoding.encode(text))
+        else:
+            raise RuntimeError("tiktoken not available")
+    except Exception:
+        # Fallback: approximate tokens by characters (4 chars ≈ 1 token)
+        token_count = int(len(text) / 4)
 
     # Return original text if under limit
     if token_count <= max_tokens:
         return text
 
     # Calculate token/character ratio for approximation
-    char_count = len(text)
-    ratio = token_count / char_count
+    char_count = max(1, len(text))
+    # Approximate ratio; when using fallback, inverse of 4 chars per token
+    ratio = token_count / char_count if token_count else 1.0
 
     # Keep head and tail mode: allocate half space for each (with 5% safety margin)
     chars_per_half = int((max_tokens / 2) / ratio * 0.95)

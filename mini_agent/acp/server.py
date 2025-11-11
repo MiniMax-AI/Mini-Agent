@@ -17,6 +17,7 @@ from mini_agent.tools.bash_tool import BashTool, BashOutputTool, BashKillTool
 from mini_agent.tools.file_tools import ReadTool, WriteTool, EditTool
 from mini_agent.tools.mcp_loader import load_mcp_tools_async
 from mini_agent.tools.skill_tool import create_skill_tools
+from mini_agent.acp import schema_fix  # noqa: F401 - ensure monkeypatch is applied on import
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +74,10 @@ def initialize_tools(config: Config, workspace_dir: Path) -> list:
     # Skills
     if config.tools.enable_skills:
         try:
-            skills = create_skill_tools(config.tools.skills_dir)
-            tools.extend(skills)
-            logger.info("Loaded %d skills", len(skills))
+            # create_skill_tools returns (tools: list[Tool], loader: Optional[SkillLoader])
+            skill_tools, _ = create_skill_tools(config.tools.skills_dir)
+            tools.extend(skill_tools)
+            logger.info("Loaded %d skills", len(skill_tools))
         except Exception as e:
             logger.warning("Failed to load skills: %s", e)
 

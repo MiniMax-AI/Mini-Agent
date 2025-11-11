@@ -21,9 +21,16 @@ class AgentLogger:
 
         Logs are stored in ~/.mini-agent/log/ directory
         """
-        # Use ~/.mini-agent/log/ directory for logs
-        self.log_dir = Path.home() / ".mini-agent" / "log"
-        self.log_dir.mkdir(parents=True, exist_ok=True)
+        # Prefer ~/.mini-agent/log/ directory for logs
+        preferred = Path.home() / ".mini-agent" / "log"
+        try:
+            preferred.mkdir(parents=True, exist_ok=True)
+            self.log_dir = preferred
+        except Exception:
+            # Fallback to workspace-local directory when HOME is not writable
+            fallback = Path.cwd() / ".mini-agent" / "log"
+            fallback.mkdir(parents=True, exist_ok=True)
+            self.log_dir = fallback
         self.log_file = None
         self.log_index = 0
 
