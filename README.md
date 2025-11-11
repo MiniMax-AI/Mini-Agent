@@ -248,18 +248,26 @@ mini-agent-acp
 
 ### Integration with Zed
 
-Add to your Zed agent configuration:
+Zed communicates with external agents over ACP via stdio. To use Mini‑Agent in Zed, point Zed to the exact executable you installed (ideally the venv binary):
 
-```json
-{
-  "agents": [
-    {
-      "name": "mini-agent",
-      "command": "mini-agent-acp"
-    }
-  ]
-}
-```
+1) Open the Agent Panel (cmd-?) and create a New External Agent → ACP.
+2) Set Command to your venv path, for example:
+   - `/Users/sero/projects/Mini-Agent/.venv/bin/mini-agent-acp`
+3) Optionally set the working directory to your project path.
+4) Start a thread and talk to the agent. Tool progress and results stream in real time.
+
+Tips for consistent versions:
+- Prefer the absolute venv path over relying on PATH.
+- If needed, wrap the command to print the installed version before exec:
+  - Command: `/bin/bash`
+  - Args: `-lc`, `echo 'mini-agent:' $(python -c 'import importlib.metadata as m; print(m.version("mini-agent"))') 'at' $(python -c 'import mini_agent; print(mini_agent.__file__)') >&2; exec /Users/sero/projects/Mini-Agent/.venv/bin/mini-agent-acp`
+
+Configuration search order:
+- `mini_agent/config/config.yaml` (dev checkout)
+- `~/.mini-agent/config/config.yaml` (recommended for keys)
+- `<site-packages>/mini_agent/config/config.yaml`
+
+Security: never commit API keys. Use `~/.mini-agent/config/config.yaml` and keep `config.yaml` out of version control (already ignored).
 
 For detailed ACP documentation, see [mini_agent/acp/README.md](mini_agent/acp/README.md).
 

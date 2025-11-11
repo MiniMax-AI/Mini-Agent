@@ -79,18 +79,25 @@ The server will:
 
 ### With Zed Editor
 
-Add to your Zed agent configuration:
+Zed speaks ACP over stdio. Point Zed directly at your Mini‑Agent executable (ideally the virtualenv path) to ensure it runs the same version you installed locally.
 
-```json
-{
-  "agents": [
-    {
-      "name": "mini-agent",
-      "command": "mini-agent-acp"
-    }
-  ]
-}
-```
+Steps:
+- Open the Agent Panel (cmd-?) → New External Agent → ACP.
+- Command: `/absolute/path/to/venv/bin/mini-agent-acp`
+- Optional: set Working Directory to your project path.
+- Start a thread. You should see streaming updates for thoughts, messages, and tools.
+
+Verifying the version Zed runs:
+- Use a small wrapper to print version + module path, then exec Mini‑Agent:
+  - Command: `/bin/bash`
+  - Args: `-lc`, `echo 'mini-agent:' $(python -c 'import importlib.metadata as m; print(m.version("mini-agent"))') 'at' $(python -c 'import mini_agent; print(mini_agent.__file__)') >&2; exec /absolute/path/to/venv/bin/mini-agent-acp`
+
+Configuration locations (searched in order):
+1) `mini_agent/config/config.yaml` (development)
+2) `~/.mini-agent/config/config.yaml` (recommended for API keys)
+3) Installed package config
+
+Security: never commit secrets. Keep keys in `~/.mini-agent/config/config.yaml`. The repository ignores `config.yaml` by default.
 
 ### Programmatically
 
@@ -219,6 +226,7 @@ This implementation follows the [Agent Client Protocol](https://agentclientproto
 - ✅ Session management (create, prompt, cancel)
 - ✅ Real-time streaming via `sessionUpdate` notifications
 - ✅ Tool execution with progress tracking
+- ✅ Stop reasons map to ACP enum values (`end_turn`, `max_tokens`, `max_turn_requests`, `refusal`, `cancelled`)
 - ✅ Bidirectional requests (agent → client)
 - ⚠️ Session persistence (not yet implemented)
 - ⚠️ Mode switching (not yet implemented)
