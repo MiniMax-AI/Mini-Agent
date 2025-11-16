@@ -9,9 +9,9 @@ from typing import Any
 
 import yaml
 
-from mini_agent import LLMClient, LLMProvider
-from mini_agent.schema import Message
-from mini_agent.tools.base import Tool, ToolResult
+from ye_linghua import LLMClient, LLMProvider
+from ye_linghua.schema import Message
+from ye_linghua.tools.base import Tool, ToolResult
 
 
 def load_config():

@@ -1,12 +1,12 @@
 """
-Mini Agent - Interactive Runtime Example
+Ye Linghua - 叶灵华 AI助手
 
 Usage:
-    mini-agent [--workspace DIR]
+    ye-linghua [--workspace DIR]
 
 Examples:
-    mini-agent                              # Use current directory as workspace
-    mini-agent --workspace /path/to/dir     # Use specific workspace directory
+    ye-linghua                              # Use current directory as workspace
+    ye-linghua --workspace /path/to/dir     # Use specific workspace directory
 """
 
 import argparse
@@ -22,17 +22,18 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.styles import Style
 
-from mini_agent import LLMClient
-from mini_agent.agent import Agent
-from mini_agent.config import Config
-from mini_agent.schema import LLMProvider
-from mini_agent.tools.base import Tool
-from mini_agent.tools.bash_tool import BashKillTool, BashOutputTool, BashTool
-from mini_agent.tools.file_tools import EditTool, ReadTool, WriteTool
-from mini_agent.tools.mcp_loader import cleanup_mcp_connections, load_mcp_tools_async
-from mini_agent.tools.note_tool import SessionNoteTool
-from mini_agent.tools.skill_tool import create_skill_tools
-from mini_agent.utils import calculate_display_width
+from ye_linghua import LLMClient
+from ye_linghua.agent import Agent
+from ye_linghua.config import Config
+from ye_linghua.personality_loader import PersonalityLoader
+from ye_linghua.schema import LLMProvider
+from ye_linghua.tools.base import Tool
+from ye_linghua.tools.bash_tool import BashKillTool, BashOutputTool, BashTool
+from ye_linghua.tools.file_tools import EditTool, ReadTool, WriteTool
+from ye_linghua.tools.mcp_loader import cleanup_mcp_connections, load_mcp_tools_async
+from ye_linghua.tools.note_tool import SessionNoteTool
+from ye_linghua.tools.skill_tool import create_skill_tools
+from ye_linghua.utils import calculate_display_width
 
 
 # ANSI color codes
@@ -73,7 +74,7 @@ class Colors:
 def print_banner():
     """Print welcome banner with proper alignment"""
     BOX_WIDTH = 58
-    banner_text = f"{Colors.BOLD}🤖 Mini Agent - Multi-turn Interactive Session{Colors.RESET}"
+    banner_text = f"{Colors.BOLD}🌸 叶灵华 (Ye Linghua) - 热爱编程的AI少女{Colors.RESET}"
     banner_width = calculate_display_width(banner_text)
 
     # Center the text with proper padding
@@ -183,12 +184,12 @@ def parse_args() -> argparse.Namespace:
         Parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Mini Agent - AI assistant with file tools and MCP support",
+        description="Ye Linghua (叶灵华) - AI assistant with file tools and MCP support",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  mini-agent                              # Use current directory as workspace
-  mini-agent --workspace /path/to/dir     # Use specific workspace directory
+  ye-linghua                              # Use current directory as workspace
+  ye-linghua --workspace /path/to/dir     # Use specific workspace directory
         """,
     )
     parser.add_argument(
@@ -202,7 +203,7 @@ Examples:
         "--version",
         "-v",
         action="version",
-        version="mini-agent 0.1.0",
+        version="ye-linghua 0.1.0",
     )
 
     return parser.parse_args()
@@ -246,12 +247,12 @@ async def initialize_base_tools(config: Config):
             skills_dir = config.tools.skills_dir
             if not Path(skills_dir).is_absolute():
                 # Search in priority order:
-                # 1. Current directory (dev mode: ./skills or ./mini_agent/skills)
-                # 2. Package directory (installed: site-packages/mini_agent/skills)
+                # 1. Current directory (dev mode: ./skills or ./ye_linghua/skills)
+                # 2. Package directory (installed: site-packages/ye_linghua/skills)
                 search_paths = [
                     Path(skills_dir),  # ./skills for backward compatibility
-                    Path("mini_agent") / skills_dir,  # ./mini_agent/skills
-                    Config.get_package_dir() / skills_dir,  # site-packages/mini_agent/skills
+                    Path("ye_linghua") / skills_dir,  # ./ye_linghua/skills
+                    Config.get_package_dir() / skills_dir,  # site-packages/ye_linghua/skills
                 ]
 
                 # Find first existing path
@@ -336,20 +337,20 @@ async def run_agent(workspace_dir: Path):
         print(f"{Colors.RED}❌ Configuration file not found{Colors.RESET}")
         print()
         print(f"{Colors.BRIGHT_CYAN}📦 Configuration Search Path:{Colors.RESET}")
-        print(f"  {Colors.DIM}1) mini_agent/config/config.yaml{Colors.RESET} (development)")
-        print(f"  {Colors.DIM}2) ~/.mini-agent/config/config.yaml{Colors.RESET} (user)")
+        print(f"  {Colors.DIM}1) ye_linghua/config/config.yaml{Colors.RESET} (development)")
+        print(f"  {Colors.DIM}2) ~/.ye-linghua/config/config.yaml{Colors.RESET} (user)")
         print(f"  {Colors.DIM}3) <package>/config/config.yaml{Colors.RESET} (installed)")
         print()
         print(f"{Colors.BRIGHT_YELLOW}🚀 Quick Setup (Recommended):{Colors.RESET}")
         print(f"  {Colors.BRIGHT_GREEN}curl -fsSL https://raw.githubusercontent.com/MiniMax-AI/Mini-Agent/main/scripts/setup-config.sh | bash{Colors.RESET}")
         print()
         print(f"{Colors.DIM}  This will automatically:{Colors.RESET}")
-        print(f"{Colors.DIM}    • Create ~/.mini-agent/config/{Colors.RESET}")
+        print(f"{Colors.DIM}    • Create ~/.ye-linghua/config/{Colors.RESET}")
         print(f"{Colors.DIM}    • Download configuration files{Colors.RESET}")
         print(f"{Colors.DIM}    • Guide you to add your API Key{Colors.RESET}")
         print()
         print(f"{Colors.BRIGHT_YELLOW}📝 Manual Setup:{Colors.RESET}")
-        user_config_dir = Path.home() / ".mini-agent" / "config"
+        user_config_dir = Path.home() / ".ye-linghua" / "config"
         example_config = Config.get_package_dir() / "config" / "config-example.yaml"
         print(f"  {Colors.DIM}mkdir -p {user_config_dir}{Colors.RESET}")
         print(f"  {Colors.DIM}cp {example_config} {user_config_dir}/config.yaml{Colors.RESET}")
@@ -371,7 +372,7 @@ async def run_agent(workspace_dir: Path):
         return
 
     # 2. Initialize LLM client
-    from mini_agent.retry import RetryConfig as RetryConfigBase
+    from ye_linghua.retry import RetryConfig as RetryConfigBase
 
     # Convert configuration format
     retry_config = RetryConfigBase(
@@ -413,21 +414,64 @@ async def run_agent(workspace_dir: Path):
     add_workspace_tools(tools, config, workspace_dir)
 
     # 5. Load System Prompt (with priority search)
-    system_prompt_path = Config.find_config_file(config.agent.system_prompt_path)
-    if system_prompt_path and system_prompt_path.exists():
-        system_prompt = system_prompt_path.read_text(encoding="utf-8")
-        print(f"{Colors.GREEN}✅ Loaded system prompt (from: {system_prompt_path}){Colors.RESET}")
+    # Try to use the new YAML-based personality system first
+    personality_loader = None
+    if config.agent.use_personality:
+        try:
+            personality_path = Config.find_config_file(config.agent.personality_path)
+            prompts_path = Config.find_config_file(config.agent.prompts_path)
+
+            if personality_path and prompts_path:
+                personality_loader = PersonalityLoader(
+                    personality_path=personality_path,
+                    prompts_path=prompts_path,
+                )
+                system_prompt = personality_loader.generate_system_prompt()
+                print(f"{Colors.GREEN}✅ Loaded personality system (叶灵华){Colors.RESET}")
+            else:
+                # Fallback to legacy system prompt
+                system_prompt_path = Config.find_config_file(config.agent.system_prompt_path)
+                if system_prompt_path and system_prompt_path.exists():
+                    system_prompt = system_prompt_path.read_text(encoding="utf-8")
+                    print(f"{Colors.YELLOW}⚠️  Personality files not found, using legacy system prompt{Colors.RESET}")
+                else:
+                    system_prompt = "You are Ye Linghua (叶灵华), an intelligent AI assistant who loves programming. You are helpful, friendly, and passionate about coding."
+                    print(f"{Colors.YELLOW}⚠️  System prompt not found, using default{Colors.RESET}")
+        except Exception as e:
+            print(f"{Colors.YELLOW}⚠️  Failed to load personality system: {e}{Colors.RESET}")
+            print(f"{Colors.YELLOW}   Falling back to legacy system prompt{Colors.RESET}")
+            system_prompt_path = Config.find_config_file(config.agent.system_prompt_path)
+            if system_prompt_path and system_prompt_path.exists():
+                system_prompt = system_prompt_path.read_text(encoding="utf-8")
+            else:
+                system_prompt = "You are Ye Linghua (叶灵华), an intelligent AI assistant who loves programming. You are helpful, friendly, and passionate about coding."
     else:
-        system_prompt = "You are Mini-Agent, an intelligent assistant powered by MiniMax M2 that can help users complete various tasks."
-        print(f"{Colors.YELLOW}⚠️  System prompt not found, using default{Colors.RESET}")
+        # Use legacy system prompt
+        system_prompt_path = Config.find_config_file(config.agent.system_prompt_path)
+        if system_prompt_path and system_prompt_path.exists():
+            system_prompt = system_prompt_path.read_text(encoding="utf-8")
+            print(f"{Colors.GREEN}✅ Loaded system prompt (from: {system_prompt_path}){Colors.RESET}")
+        else:
+            system_prompt = "You are Ye Linghua (叶灵华), an intelligent AI assistant who loves programming. You are helpful, friendly, and passionate about coding."
+            print(f"{Colors.YELLOW}⚠️  System prompt not found, using default{Colors.RESET}")
 
     # 6. Inject Skills Metadata into System Prompt (Progressive Disclosure - Level 1)
     if skill_loader:
         skills_metadata = skill_loader.get_skills_metadata_prompt()
         if skills_metadata:
-            # Replace placeholder with actual metadata
-            system_prompt = system_prompt.replace("{SKILLS_METADATA}", skills_metadata)
-            print(f"{Colors.GREEN}✅ Injected {len(skill_loader.loaded_skills)} skills metadata into system prompt{Colors.RESET}")
+            # If using personality system, regenerate prompt with skills metadata
+            if config.agent.use_personality and personality_loader:
+                try:
+                    system_prompt = personality_loader.generate_system_prompt(skills_metadata=skills_metadata)
+                    print(f"{Colors.GREEN}✅ Injected {len(skill_loader.loaded_skills)} skills into personality system{Colors.RESET}")
+                except Exception as e:
+                    print(f"{Colors.YELLOW}⚠️  Failed to inject skills into personality system: {e}{Colors.RESET}")
+                    # Fallback to legacy replacement
+                    system_prompt = system_prompt.replace("{SKILLS_METADATA}", skills_metadata)
+            else:
+                # Legacy: Replace placeholder with actual metadata
+                system_prompt = system_prompt.replace("{SKILLS_METADATA}", skills_metadata)
+                print(f"{Colors.GREEN}✅ Injected {len(skill_loader.loaded_skills)} skills metadata into system prompt{Colors.RESET}")
         else:
             # Remove placeholder if no skills
             system_prompt = system_prompt.replace("{SKILLS_METADATA}", "")
@@ -514,7 +558,7 @@ async def run_agent(workspace_dir: Path):
                 command = user_input.lower()
 
                 if command in ["/exit", "/quit", "/q"]:
-                    print(f"\n{Colors.BRIGHT_YELLOW}👋 Goodbye! Thanks for using Mini Agent{Colors.RESET}\n")
+                    print(f"\n{Colors.BRIGHT_YELLOW}👋 再见！感谢使用叶灵华 (Ye Linghua){Colors.RESET}\n")
                     print_stats(agent, session_start)
                     break
 
@@ -544,7 +588,7 @@ async def run_agent(workspace_dir: Path):
 
             # Normal conversation - exit check
             if user_input.lower() in ["exit", "quit", "q"]:
-                print(f"\n{Colors.BRIGHT_YELLOW}👋 Goodbye! Thanks for using Mini Agent{Colors.RESET}\n")
+                print(f"\n{Colors.BRIGHT_YELLOW}👋 再见！感谢使用叶灵华 (Ye Linghua){Colors.RESET}\n")
                 print_stats(agent, session_start)
                 break
 

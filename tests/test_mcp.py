@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from mini_agent.tools.mcp_loader import cleanup_mcp_connections, load_mcp_tools_async
+from ye_linghua.tools.mcp_loader import cleanup_mcp_connections, load_mcp_tools_async
 
 
 @pytest.fixture(scope="module")

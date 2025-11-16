@@ -10,10 +10,10 @@ import asyncio
 import tempfile
 from pathlib import Path
 
-from mini_agent import LLMClient
-from mini_agent.agent import Agent
-from mini_agent.config import Config
-from mini_agent.tools import BashTool, EditTool, ReadTool, WriteTool
+from ye_linghua import LLMClient
+from ye_linghua.agent import Agent
+from ye_linghua.config import Config
+from ye_linghua.tools import BashTool, EditTool, ReadTool, WriteTool
 
 
 async def demo_file_creation():

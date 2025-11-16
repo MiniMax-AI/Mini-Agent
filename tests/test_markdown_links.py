@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from mini_agent.tools.skill_loader import SkillLoader
+from ye_linghua.tools.skill_loader import SkillLoader
 
 
 def test_markdown_link_processing():

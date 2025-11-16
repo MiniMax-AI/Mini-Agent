@@ -1,11 +1,11 @@
 [project]
-name = "mini-agent"
+name = "ye-linghua"
 version = "0.1.0"
-description = "Minimal single agent demo with basic file tools and MCP support"
+description = "Ye Linghua - AI助手，一个热爱编程的少女"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-    {name = "Mini Agent Team"}
+    {name = "Ye Linghua Team"}
 ]
 license = {text = "MIT"}
 dependencies = [
@@ -21,10 +21,13 @@ dependencies = [
     "pipx>=1.8.0",
     "anthropic>=0.39.0",
     "openai>=1.57.4",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
 ]
 
 [project.scripts]
-mini-agent = "mini_agent.cli:main"
+ye-linghua = "ye_linghua.cli:main"
+ye-linghua-config = "ye_linghua.web_config:main"
 
 [project.optional-dependencies]
 dev = [
@@ -40,13 +43,13 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["mini_agent*"]
+include = ["ye_linghua*"]
 exclude = ["tests*"]
 
 # Include skills directory (git submodule) as package data
-# After moving submodule to mini_agent/skills
+# After moving submodule to ye_linghua/skills
 [tool.setuptools.package-data]
-mini_agent = ["skills/**/*"]
+ye_linghua = ["skills/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

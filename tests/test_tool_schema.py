@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from mini_agent.tools.base import Tool, ToolResult
+from ye_linghua.tools.base import Tool, ToolResult
 
 
 class MockWeatherTool(Tool):

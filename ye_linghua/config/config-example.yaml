@@ -1,14 +1,14 @@
-# Mini Agent Configuration Example
-# 
+# Ye Linghua (叶灵华) Configuration Example
+#
 # Configuration File Locations (in priority order):
-# 1) mini_agent/config/config.yaml - Development mode (current directory)
-# 2) ~/.mini-agent/config/config.yaml - User config directory
-# 3) <package>/mini_agent/config/config.yaml - Package installation directory
+# 1) ye_linghua/config/config.yaml - Development mode (current directory)
+# 2) ~/.ye-linghua/config/config.yaml - User config directory
+# 3) <package>/ye_linghua/config/config.yaml - Package installation directory
 #
 # To use this config:
 # - Copy this file to one of the above locations as config.yaml
 # - Fill in your API key and customize settings as needed
-# - All config files (config.yaml, mcp.json, system_prompt.md) are in the same directory
+# - All config files (config.yaml, mcp.json, personality.yaml, prompts.yaml) are in the same directory
 
 # ===== LLM Configuration =====
 # MiniMax API Configuration
@@ -33,9 +33,15 @@ retry:
   exponential_base: 2.0   # Exponential backoff base (delay = initial_delay * base^attempt)
 
 # ===== Agent Configuration =====
-max_steps: 100  # Maximum execution steps
-workspace_dir: "./workspace"  # Working directory
-system_prompt_path: "system_prompt.md"  # System prompt file (same config directory)
+agent:
+  max_steps: 100  # Maximum execution steps
+  workspace_dir: "./workspace"  # Working directory
+  system_prompt_path: "system_prompt.md"  # Legacy system prompt file (same config directory)
+
+  # New Personality System (YAML-based)
+  use_personality: true  # Use YAML-based personality system (recommended)
+  personality_path: "personality.yaml"  # Personality configuration file
+  prompts_path: "prompts.yaml"  # Prompts template configuration file
 
 # ===== Tools Configuration =====
 tools:

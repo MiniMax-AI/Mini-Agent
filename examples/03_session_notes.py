@@ -11,11 +11,11 @@ import json
 import tempfile
 from pathlib import Path
 
-from mini_agent import LLMClient
-from mini_agent.agent import Agent
-from mini_agent.config import Config
-from mini_agent.tools import BashTool, ReadTool, WriteTool
-from mini_agent.tools.note_tool import RecallNoteTool, SessionNoteTool
+from ye_linghua import LLMClient
+from ye_linghua.agent import Agent
+from ye_linghua.config import Config
+from ye_linghua.tools import BashTool, ReadTool, WriteTool
+from ye_linghua.tools.note_tool import RecallNoteTool, SessionNoteTool
 
 
 async def demo_direct_note_usage():

@@ -17,6 +17,7 @@ class OpenAIClient(LLMClientBase):
     """LLM client using OpenAI's protocol.
 
     This client uses the official OpenAI SDK and supports:
+    - Multimodal inputs (text + images via URL or base64)
     - Reasoning content (via reasoning_split=True)
     - Tool calling
     - Retry logic
@@ -130,7 +131,13 @@ class OpenAIClient(LLMClientBase):
 
             # For user messages
             if msg.role == "user":
-                api_messages.append({"role": "user", "content": msg.content})
+                # Support multimodal content (text + images)
+                # content can be either a string or a list of content blocks
+                if isinstance(msg.content, str):
+                    api_messages.append({"role": "user", "content": msg.content})
+                else:
+                    # Multimodal content: list[dict] with text and/or image_url blocks
+                    api_messages.append({"role": "user", "content": msg.content})
 
             # For assistant messages
             elif msg.role == "assistant":

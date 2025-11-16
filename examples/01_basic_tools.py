@@ -13,7 +13,7 @@ import asyncio
 import tempfile
 from pathlib import Path
 
-from mini_agent.tools import BashTool, EditTool, ReadTool, WriteTool
+from ye_linghua.tools import BashTool, EditTool, ReadTool, WriteTool
 
 
 async def demo_write_tool():

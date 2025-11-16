@@ -10,7 +10,7 @@ from pathlib import Path
 
 import yaml
 
-from mini_agent import LLMClient, LLMProvider, Message
+from ye_linghua import LLMClient, LLMProvider, Message
 
 
 async def demo_anthropic_provider():

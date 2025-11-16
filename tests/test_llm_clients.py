@@ -10,9 +10,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-from mini_agent.llm import AnthropicClient, OpenAIClient
-from mini_agent.retry import RetryConfig
-from mini_agent.schema import Message
+from ye_linghua.llm import AnthropicClient, OpenAIClient
+from ye_linghua.retry import RetryConfig
+from ye_linghua.schema import Message
 
 
 def load_config():

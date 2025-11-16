@@ -35,6 +35,10 @@ class AgentConfig(BaseModel):
     max_steps: int = 50
     workspace_dir: str = "./workspace"
     system_prompt_path: str = "system_prompt.md"
+    # New personality configuration
+    use_personality: bool = True  # Use YAML-based personality system
+    personality_path: str = "personality.yaml"
+    prompts_path: str = "prompts.yaml"
 
 
 class ToolsConfig(BaseModel):
@@ -112,10 +116,14 @@ class Config(BaseModel):
         )
 
         # Parse Agent configuration
+        agent_data = data.get("agent", {})
         agent_config = AgentConfig(
-            max_steps=data.get("max_steps", 50),
-            workspace_dir=data.get("workspace_dir", "./workspace"),
-            system_prompt_path=data.get("system_prompt_path", "system_prompt.md"),
+            max_steps=agent_data.get("max_steps", data.get("max_steps", 50)),
+            workspace_dir=agent_data.get("workspace_dir", data.get("workspace_dir", "./workspace")),
+            system_prompt_path=agent_data.get("system_prompt_path", data.get("system_prompt_path", "system_prompt.md")),
+            use_personality=agent_data.get("use_personality", True),
+            personality_path=agent_data.get("personality_path", "personality.yaml"),
+            prompts_path=agent_data.get("prompts_path", "prompts.yaml"),
         )
 
         # Parse tools configuration
@@ -141,7 +149,7 @@ class Config(BaseModel):
         """Get the package installation directory
 
         Returns:
-            Path to the mini_agent package directory
+            Path to the ye_linghua package directory
         """
         # Get the directory where this config.py file is located
         return Path(__file__).parent
@@ -151,9 +159,9 @@ class Config(BaseModel):
         """Find configuration file with priority order
 
         Search for config file in the following order of priority:
-        1) mini_agent/config/{filename} in current directory (development mode)
-        2) ~/.mini-agent/config/{filename} in user home directory
-        3) {package}/mini_agent/config/{filename} in package installation directory
+        1) ye_linghua/config/{filename} in current directory (development mode)
+        2) ~/.ye-linghua/config/{filename} in user home directory
+        3) {package}/ye_linghua/config/{filename} in package installation directory
 
         Args:
             filename: Configuration file name (e.g., "config.yaml", "mcp.json", "system_prompt.md")
@@ -162,12 +170,12 @@ class Config(BaseModel):
             Path to found config file, or None if not found
         """
         # Priority 1: Development mode - current directory's config/ subdirectory
-        dev_config = Path.cwd() / "mini_agent" / "config" / filename
+        dev_config = Path.cwd() / "ye_linghua" / "config" / filename
         if dev_config.exists():
             return dev_config
 
         # Priority 2: User config directory
-        user_config = Path.home() / ".mini-agent" / "config" / filename
+        user_config = Path.home() / ".ye-linghua" / "config" / filename
         if user_config.exists():
             return user_config
 

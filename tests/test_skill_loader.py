@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from mini_agent.tools.skill_loader import Skill, SkillLoader
+from ye_linghua.tools.skill_loader import Skill, SkillLoader
 
 
 def create_test_skill(skill_dir: Path, name: str, description: str, content: str):

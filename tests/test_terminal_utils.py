@@ -2,7 +2,7 @@
 
 import pytest
 
-from mini_agent.utils import (
+from ye_linghua.utils import (
     calculate_display_width,
     pad_to_width,
     truncate_with_ellipsis,
