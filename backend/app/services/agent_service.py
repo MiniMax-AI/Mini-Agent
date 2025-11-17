@@ -1,5 +1,6 @@
 """Agent 服务 - 连接 Mini-Agent 核心"""
 import sys
+import os
 from pathlib import Path
 
 # 添加 mini_agent 到 Python 路径
@@ -13,6 +14,8 @@ from mini_agent.schema import LLMProvider, Message as AgentMessage
 from mini_agent.tools.file_tools import ReadTool, WriteTool, EditTool
 from mini_agent.tools.bash_tool import BashTool, BashOutputTool, BashKillTool
 from mini_agent.tools.note_tool import SessionNoteTool
+from mini_agent.tools.skill_loader import SkillLoader
+from mini_agent.tools.skill_tool import GetSkillTool
 
 from app.services.history_service import HistoryService
 from app.config import get_settings
@@ -98,7 +101,32 @@ class AgentService:
             ),
         ]
 
-        # TODO: 添加 Skills
+        # 添加搜索工具（如果配置了 API Key）
+        zhipu_api_key = os.getenv("ZHIPU_API_KEY")
+        if zhipu_api_key:
+            try:
+                from mini_agent.tools.glm_search_tool import GLMSearchTool, GLMBatchSearchTool
+                tools.append(GLMSearchTool(api_key=zhipu_api_key))
+                tools.append(GLMBatchSearchTool(api_key=zhipu_api_key))
+                print(f"   ✅ 已加载 GLM 搜索工具")
+            except Exception as e:
+                print(f"   ⚠️  GLM 搜索工具加载失败: {e}")
+        else:
+            print(f"   ℹ️  未配置 ZHIPU_API_KEY，跳过搜索工具")
+
+        # 添加 Skills
+        try:
+            skills_dir = Path(__file__).parent.parent.parent.parent / "mini_agent" / "skills"
+            if skills_dir.exists():
+                skill_loader = SkillLoader(str(skills_dir))
+                tools.append(GetSkillTool(skill_loader))
+                skill_count = len(skill_loader.list_skills())
+                print(f"   ✅ 已加载 {skill_count} 个 Skills")
+            else:
+                print(f"   ⚠️  Skills 目录不存在: {skills_dir}")
+        except Exception as e:
+            print(f"   ⚠️  Skills 加载失败: {e}")
+
         # TODO: 添加 MCP tools
 
         return tools

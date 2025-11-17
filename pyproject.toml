@@ -32,6 +32,8 @@ dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
 ]
+# Note: backend 依赖在 backend/requirements.txt 中单独管理
+# 这样保持 mini_agent 作为纯粹的 Agent 库，不包含 Web 框架
 
 [build-system]
 requires = ["setuptools>=61.0"]
