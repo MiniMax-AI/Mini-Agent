@@ -224,21 +224,7 @@ async def initialize_base_tools(config: Config):
     tools = []
     skill_loader = None
 
-    # 1. Bash tool and Bash Output tool
-    if config.tools.enable_bash:
-        bash_tool = BashTool()
-        tools.append(bash_tool)
-        print(f"{Colors.GREEN}✅ Loaded Bash tool{Colors.RESET}")
-
-        bash_output_tool = BashOutputTool()
-        tools.append(bash_output_tool)
-        print(f"{Colors.GREEN}✅ Loaded Bash Output tool{Colors.RESET}")
-
-        bash_kill_tool = BashKillTool()
-        tools.append(bash_kill_tool)
-        print(f"{Colors.GREEN}✅ Loaded Bash Kill tool{Colors.RESET}")
-
-    # 3. Claude Skills (loaded from package directory)
+    # 1. Claude Skills (loaded from package directory)
     if config.tools.enable_skills:
         print(f"{Colors.BRIGHT_CYAN}Loading Claude Skills...{Colors.RESET}")
         try:
@@ -269,7 +255,7 @@ async def initialize_base_tools(config: Config):
         except Exception as e:
             print(f"{Colors.YELLOW}⚠️  Failed to load Skills: {e}{Colors.RESET}")
 
-    # 4. MCP tools (loaded with priority search)
+    # 2. MCP tools (loaded with priority search)
     if config.tools.enable_mcp:
         print(f"{Colors.BRIGHT_CYAN}Loading MCP tools...{Colors.RESET}")
         try:
@@ -303,6 +289,20 @@ def add_workspace_tools(tools: List[Tool], config: Config, workspace_dir: Path):
     """
     # Ensure workspace directory exists
     workspace_dir.mkdir(parents=True, exist_ok=True)
+
+    # Bash tools - need workspace to set working directory
+    if config.tools.enable_bash:
+        bash_tool = BashTool(workspace_dir=str(workspace_dir))
+        tools.append(bash_tool)
+        print(f"{Colors.GREEN}✅ Loaded Bash tool{Colors.RESET}")
+
+        bash_output_tool = BashOutputTool()
+        tools.append(bash_output_tool)
+        print(f"{Colors.GREEN}✅ Loaded Bash Output tool{Colors.RESET}")
+
+        bash_kill_tool = BashKillTool()
+        tools.append(bash_kill_tool)
+        print(f"{Colors.GREEN}✅ Loaded Bash Kill tool{Colors.RESET}")
 
     # File tools - need workspace to resolve relative paths
     if config.tools.enable_file_tools:

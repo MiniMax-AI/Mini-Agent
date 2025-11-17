@@ -222,10 +222,15 @@ class BashTool(Tool):
     - Unix/Linux/macOS: bash
     """
 
-    def __init__(self):
-        """Initialize BashTool with OS-specific shell detection."""
+    def __init__(self, workspace_dir: str | None = None):
+        """Initialize BashTool with OS-specific shell detection.
+
+        Args:
+            workspace_dir: Optional workspace directory path. If provided, commands will execute in this directory by default.
+        """
         self.is_windows = platform.system() == "Windows"
         self.shell_name = "PowerShell" if self.is_windows else "bash"
+        self.workspace_dir = workspace_dir
 
     @property
     def name(self) -> str:
@@ -341,12 +346,14 @@ Examples:
                         *shell_cmd,
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.STDOUT,
+                        cwd=self.workspace_dir,
                     )
                 else:
                     process = await asyncio.create_subprocess_shell(
                         shell_cmd,
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.STDOUT,
+                        cwd=self.workspace_dir,
                     )
 
                 # Create background shell and add to manager
@@ -376,12 +383,14 @@ Examples:
                         *shell_cmd,
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE,
+                        cwd=self.workspace_dir,
                     )
                 else:
                     process = await asyncio.create_subprocess_shell(
                         shell_cmd,
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE,
+                        cwd=self.workspace_dir,
                     )
 
                 try:
