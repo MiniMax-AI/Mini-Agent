@@ -1,0 +1,22 @@
+# FastAPI 后端依赖
+
+# Web 框架
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# 数据库
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# 配置管理
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# CORS
+fastapi-cors==0.0.6
+
+# 工具
+python-jose[cryptography]==3.3.0  # JWT（未来用）
+passlib[bcrypt]==1.7.4  # 密码哈希（未来用）
