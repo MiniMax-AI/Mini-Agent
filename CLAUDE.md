@@ -1,134 +1,134 @@
-# CLAUDE.md - AI Assistant Guide for Mini Agent
+# CLAUDE.md - Mini Agent 的 AI 助手指南
 
-This document provides comprehensive guidance for AI assistants (like Claude) working with the Mini Agent codebase. It covers the project structure, development workflows, key conventions, and best practices.
+本文档为使用 Mini Agent 代码库的 AI 助手（如 Claude）提供全面指导。涵盖项目结构、开发工作流程、关键约定和最佳实践。始终使用中文回复用户。
 
-## Project Overview
+## 项目概述
 
-**Mini Agent** is a minimal yet professional demo project showcasing best practices for building agents with the MiniMax M2 model. It uses an Anthropic-compatible API and fully supports interleaved thinking for complex, long-running tasks.
+**Mini Agent** 是一个简洁而专业的演示项目，展示了使用 MiniMax M2 模型构建智能体的最佳实践。它使用兼容 Anthropic 的 API，并完全支持交错思维（interleaved thinking）来处理复杂的长时间运行任务。
 
-### Key Features
+### 核心特性
 
-- Full agent execution loop with basic file system and shell operation tools
-- Persistent memory via Session Note Tool
-- Intelligent context management with automatic conversation summarization
-- Claude Skills integration (15 professional skills for documents, design, testing, development)
-- MCP (Model Context Protocol) tool integration
-- Comprehensive logging for debugging
-- Multi-provider LLM support (Anthropic and OpenAI protocols)
+- 完整的智能体执行循环，带有基础文件系统和 shell 操作工具
+- 通过会话笔记工具实现持久化记忆
+- 智能上下文管理，支持自动对话摘要
+- Claude Skills 集成（15 个专业技能，涵盖文档、设计、测试、开发）
+- MCP（模型上下文协议）工具集成
+- 用于调试的全面日志记录
+- 多提供商 LLM 支持（Anthropic 和 OpenAI 协议）
 
-### Technology Stack
+### 技术栈
 
-- **Language**: Python 3.10+
-- **Package Manager**: uv (modern Python package manager)
-- **Testing**: pytest with asyncio support
-- **Dependencies**: httpx, pydantic, pyyaml, tiktoken, prompt-toolkit, mcp, anthropic, openai
-- **Build System**: setuptools
+- **语言**: Python 3.10+
+- **包管理器**: uv（现代 Python 包管理器）
+- **测试**: pytest 配合 asyncio 支持
+- **依赖**: httpx, pydantic, pyyaml, tiktoken, prompt-toolkit, mcp, anthropic, openai
+- **构建系统**: setuptools
 
-## Repository Structure
+## 仓库结构
 
 ```
 Mini-Agent/
-├── mini_agent/                 # Core source code
+├── mini_agent/                 # 核心源代码
 │   ├── __init__.py
-│   ├── agent.py                # Main agent execution loop
-│   ├── cli.py                  # Command-line interface with prompt_toolkit
-│   ├── config.py               # Configuration loading logic
-│   ├── logger.py               # Comprehensive logging system
-│   ├── retry.py                # Retry mechanism with exponential backoff
-│   ├── llm/                    # LLM client abstraction
-│   │   ├── base.py             # Abstract base class for LLM clients
-│   │   ├── anthropic_client.py # Anthropic API implementation
-│   │   ├── openai_client.py    # OpenAI API implementation
-│   │   └── llm_wrapper.py      # LLMClient factory
-│   ├── schema/                 # Data models
-│   │   └── schema.py           # Pydantic models for messages, responses, etc.
-│   ├── tools/                  # Tool implementations
-│   │   ├── base.py             # Base Tool class and ToolResult
+│   ├── agent.py                # 主智能体执行循环
+│   ├── cli.py                  # 使用 prompt_toolkit 的命令行界面
+│   ├── config.py               # 配置加载逻辑
+│   ├── logger.py               # 全面的日志系统
+│   ├── retry.py                # 指数退避的重试机制
+│   ├── llm/                    # LLM 客户端抽象
+│   │   ├── base.py             # LLM 客户端的抽象基类
+│   │   ├── anthropic_client.py # Anthropic API 实现
+│   │   ├── openai_client.py    # OpenAI API 实现
+│   │   └── llm_wrapper.py      # LLMClient 工厂
+│   ├── schema/                 # 数据模型
+│   │   └── schema.py           # 消息、响应等的 Pydantic 模型
+│   ├── tools/                  # 工具实现
+│   │   ├── base.py             # 基础 Tool 类和 ToolResult
 │   │   ├── file_tools.py       # ReadTool, WriteTool, EditTool
 │   │   ├── bash_tool.py        # BashTool, BashOutputTool, BashKillTool
-│   │   ├── note_tool.py        # SessionNoteTool for persistent memory
-│   │   ├── skill_tool.py       # Skill tools (get_skill)
-│   │   ├── skill_loader.py     # Loads Claude Skills from submodule
-│   │   └── mcp_loader.py       # MCP server integration
-│   ├── skills/                 # Claude Skills (git submodule)
-│   ├── utils/                  # Utility functions
-│   │   └── terminal_utils.py   # Terminal display width calculations
-│   └── config/                 # Configuration files
-│       ├── config-example.yaml # Configuration template
-│       ├── system_prompt.md    # System prompt for the agent
-│       └── mcp.json            # MCP server configuration
-├── tests/                      # Test suite
-│   ├── test_agent.py           # Agent integration tests
-│   ├── test_llm.py             # LLM client tests
-│   ├── test_note_tool.py       # Session Note Tool tests
-│   ├── test_skill_tool.py      # Skill tool tests
-│   ├── test_mcp.py             # MCP loading tests
+│   │   ├── note_tool.py        # 用于持久化记忆的 SessionNoteTool
+│   │   ├── skill_tool.py       # Skill 工具 (get_skill)
+│   │   ├── skill_loader.py     # 从子模块加载 Claude Skills
+│   │   └── mcp_loader.py       # MCP 服务器集成
+│   ├── skills/                 # Claude Skills（git 子模块）
+│   ├── utils/                  # 工具函数
+│   │   └── terminal_utils.py   # 终端显示宽度计算
+│   └── config/                 # 配置文件
+│       ├── config-example.yaml # 配置模板
+│       ├── system_prompt.md    # 智能体的系统提示
+│       └── mcp.json            # MCP 服务器配置
+├── tests/                      # 测试套件
+│   ├── test_agent.py           # 智能体集成测试
+│   ├── test_llm.py             # LLM 客户端测试
+│   ├── test_note_tool.py       # 会话笔记工具测试
+│   ├── test_skill_tool.py      # Skill 工具测试
+│   ├── test_mcp.py             # MCP 加载测试
 │   └── ...
-├── docs/                       # Documentation
-│   ├── DEVELOPMENT_GUIDE.md    # Detailed development guide
-│   └── PRODUCTION_GUIDE.md     # Production deployment guide
-├── scripts/                    # Setup and utility scripts
-├── examples/                   # Example usage
-├── workspace/                  # Default workspace directory (gitignored)
-├── pyproject.toml             # Project configuration and dependencies
-├── uv.lock                    # Locked dependencies
-├── README.md                  # Main documentation
-└── CONTRIBUTING.md            # Contribution guidelines
+├── docs/                       # 文档
+│   ├── DEVELOPMENT_GUIDE.md    # 详细开发指南
+│   └── PRODUCTION_GUIDE.md     # 生产部署指南
+├── scripts/                    # 设置和工具脚本
+├── examples/                   # 使用示例
+├── workspace/                  # 默认工作空间目录（已忽略）
+├── pyproject.toml             # 项目配置和依赖
+├── uv.lock                    # 锁定的依赖
+├── README.md                  # 主文档
+└── CONTRIBUTING.md            # 贡献指南
 ```
 
-## Core Architecture
+## 核心架构
 
-### 1. Agent Execution Loop
+### 1. 智能体执行循环
 
-**File**: `mini_agent/agent.py`
+**文件**: `mini_agent/agent.py`
 
-The `Agent` class implements the core execution loop:
+`Agent` 类实现了核心执行循环：
 
-- **Message Management**: Maintains conversation history with automatic token counting
-- **Context Summarization**: Automatically summarizes history when token limit is exceeded (default: 80,000 tokens)
-- **Tool Execution**: Manages tool calls and results
-- **Step Limiting**: Prevents infinite loops with configurable max_steps (default: 100)
-- **Workspace Management**: Handles workspace directory and path resolution
+- **消息管理**: 维护对话历史记录并自动计算 token
+- **上下文摘要**: 当超过 token 限制时自动摘要历史记录（默认：80,000 tokens）
+- **工具执行**: 管理工具调用和结果
+- **步骤限制**: 通过可配置的 max_steps 防止无限循环（默认：100）
+- **工作空间管理**: 处理工作空间目录和路径解析
 
-**Key Methods**:
-- `run(task: str)`: Main execution loop for a task
-- `add_user_message(content: str)`: Add user message to history
-- `_estimate_tokens()`: Accurate token counting using tiktoken
-- `_summarize_history()`: Intelligent context compression
+**关键方法**:
+- `run(task: str)`: 任务的主执行循环
+- `add_user_message(content: str)`: 向历史记录添加用户消息
+- `_estimate_tokens()`: 使用 tiktoken 精确计算 token
+- `_summarize_history()`: 智能上下文压缩
 
-### 2. LLM Client Abstraction
+### 2. LLM 客户端抽象
 
-**Files**: `mini_agent/llm/`
+**文件**: `mini_agent/llm/`
 
-The LLM layer has been abstracted to support multiple providers:
+LLM 层已被抽象化以支持多个提供商：
 
-- **`base.py`**: Defines `LLMClientBase` abstract interface
-- **`anthropic_client.py`**: Anthropic Messages API implementation
-- **`openai_client.py`**: OpenAI Chat Completions API implementation
-- **`llm_wrapper.py`**: Factory that creates appropriate client based on configuration
+- **`base.py`**: 定义 `LLMClientBase` 抽象接口
+- **`anthropic_client.py`**: Anthropic Messages API 实现
+- **`openai_client.py`**: OpenAI Chat Completions API 实现
+- **`llm_wrapper.py`**: 根据配置创建适当客户端的工厂
 
-**Key Features**:
-- Provider-agnostic interface
-- Automatic API endpoint construction (appends `/anthropic` or `/v1`)
-- Retry mechanism with exponential backoff
-- Thinking block support (for models that support it)
-- Tool calling standardization
+**关键特性**:
+- 与提供商无关的接口
+- 自动 API 端点构建（附加 `/anthropic` 或 `/v1`）
+- 指数退避的重试机制
+- 思维块支持（针对支持它的模型）
+- 工具调用标准化
 
-**Configuration**:
+**配置**:
 ```yaml
-provider: "anthropic"  # or "openai"
+provider: "anthropic"  # 或 "openai"
 api_key: "YOUR_API_KEY"
 api_base: "https://api.minimax.io"
 model: "MiniMax-M2"
 ```
 
-### 3. Tools System
+### 3. 工具系统
 
-**Files**: `mini_agent/tools/`
+**文件**: `mini_agent/tools/`
 
-All tools inherit from the `Tool` base class in `base.py`:
+所有工具都继承自 `base.py` 中的 `Tool` 基类：
 
-**Tool Interface**:
+**工具接口**:
 ```python
 class Tool:
     @property
@@ -142,146 +142,146 @@ class Tool:
 
     async def execute(self, *args, **kwargs) -> ToolResult: ...
 
-    def to_schema(self) -> dict: ...  # Anthropic format
-    def to_openai_schema(self) -> dict: ...  # OpenAI format
+    def to_schema(self) -> dict: ...  # Anthropic 格式
+    def to_openai_schema(self) -> dict: ...  # OpenAI 格式
 ```
 
-**Built-in Tools**:
-- **ReadTool**: Read file contents with optional line range
-- **WriteTool**: Create or overwrite files
-- **EditTool**: Edit existing files using old/new string replacement
-- **BashTool**: Execute bash commands with timeout
-- **BashOutputTool**: Read output from background bash processes
-- **BashKillTool**: Kill background bash processes
-- **SessionNoteTool**: Persistent note-taking for session memory
-- **get_skill**: Load Claude Skills dynamically
+**内置工具**:
+- **ReadTool**: 读取文件内容，支持可选的行范围
+- **WriteTool**: 创建或覆盖文件
+- **EditTool**: 使用旧/新字符串替换编辑现有文件
+- **BashTool**: 执行带超时的 bash 命令
+- **BashOutputTool**: 读取后台 bash 进程的输出
+- **BashKillTool**: 终止后台 bash 进程
+- **SessionNoteTool**: 用于会话记忆的持久化笔记
+- **get_skill**: 动态加载 Claude Skills
 
-### 4. Configuration System
+### 4. 配置系统
 
-**File**: `mini_agent/config.py`
+**文件**: `mini_agent/config.py`
 
-Configuration is loaded from YAML files in priority order:
-1. `mini_agent/config/config.yaml` (development mode)
-2. `~/.mini-agent/config/config.yaml` (user config)
-3. Package installation directory config
+配置按优先级从 YAML 文件加载：
+1. `mini_agent/config/config.yaml`（开发模式）
+2. `~/.mini-agent/config/config.yaml`（用户配置）
+3. 包安装目录配置
 
-**Key Configuration Options**:
-- `api_key`: MiniMax API key
-- `api_base`: API endpoint URL
-- `model`: Model name (e.g., "MiniMax-M2")
-- `provider`: LLM provider ("anthropic" or "openai")
-- `max_steps`: Maximum execution steps (default: 100)
-- `workspace_dir`: Working directory path
-- `system_prompt_path`: Path to system prompt file
-- `tools.*`: Tool enable/disable switches
-- `retry.*`: Retry configuration
+**关键配置选项**:
+- `api_key`: MiniMax API 密钥
+- `api_base`: API 端点 URL
+- `model`: 模型名称（如 "MiniMax-M2"）
+- `provider`: LLM 提供商（"anthropic" 或 "openai"）
+- `max_steps`: 最大执行步数（默认：100）
+- `workspace_dir`: 工作目录路径
+- `system_prompt_path`: 系统提示文件路径
+- `tools.*`: 工具启用/禁用开关
+- `retry.*`: 重试配置
 
-### 5. Skills System
+### 5. Skills 系统
 
-**Files**: `mini_agent/tools/skill_tool.py`, `mini_agent/tools/skill_loader.py`
+**文件**: `mini_agent/tools/skill_tool.py`, `mini_agent/tools/skill_loader.py`
 
-Claude Skills are loaded from the `skills/` git submodule using **progressive disclosure**:
-- **Level 1**: Metadata (name, description) shown at startup
-- **Level 2**: Full content loaded via `get_skill(skill_name)`
-- **Level 3+**: Additional resources and scripts as needed
+Claude Skills 使用**渐进式披露**从 `skills/` git 子模块加载：
+- **第 1 级**: 启动时显示元数据（名称、描述）
+- **第 2 级**: 通过 `get_skill(skill_name)` 加载完整内容
+- **第 3 级及以上**: 根据需要加载额外的资源和脚本
 
-**Skills include**: PDF, PPTX, DOCX, XLSX, canvas-design, algorithmic-art, testing, MCP-builder, skill-creator, and more.
+**Skills 包括**: PDF、PPTX、DOCX、XLSX、canvas-design、algorithmic-art、testing、MCP-builder、skill-creator 等。
 
-### 6. MCP Integration
+### 6. MCP 集成
 
-**File**: `mini_agent/tools/mcp_loader.py`
+**文件**: `mini_agent/tools/mcp_loader.py`
 
-Model Context Protocol (MCP) servers are configured in `mcp.json` and loaded dynamically. Pre-configured servers include:
-- **memory**: Knowledge graph memory system
-- **minimax_search**: Web search and browse capabilities
+模型上下文协议（MCP）服务器在 `mcp.json` 中配置并动态加载。预配置的服务器包括：
+- **memory**: 知识图谱记忆系统
+- **minimax_search**: 网页搜索和浏览功能
 
-## Development Workflows
+## 开发工作流程
 
-### Setting Up Development Environment
+### 设置开发环境
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/MiniMax-AI/Mini-Agent.git
 cd Mini-Agent
 
-# Install uv (if not already installed)
+# 安装 uv（如果尚未安装）
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Sync dependencies
+# 同步依赖
 uv sync
 
-# Initialize Claude Skills (optional)
+# 初始化 Claude Skills（可选）
 git submodule update --init --recursive
 
-# Copy config template
+# 复制配置模板
 cp mini_agent/config/config-example.yaml mini_agent/config/config.yaml
 
-# Edit config.yaml with your API key
+# 使用你的 API 密钥编辑 config.yaml
 # vim mini_agent/config/config.yaml
 ```
 
-### Running the Agent
+### 运行智能体
 
 ```bash
-# Method 1: Run as module (good for debugging)
+# 方法 1：作为模块运行（适合调试）
 uv run python -m mini_agent.cli
 
-# Method 2: Install in editable mode (recommended)
+# 方法 2：以可编辑模式安装（推荐）
 uv tool install -e .
 mini-agent
 mini-agent --workspace /path/to/project
 
-# Specify workspace directory
+# 指定工作空间目录
 mini-agent --workspace /path/to/your/project
 ```
 
-### Running Tests
+### 运行测试
 
 ```bash
-# Run all tests
+# 运行所有测试
 pytest tests/ -v
 
-# Run specific test file
+# 运行特定测试文件
 pytest tests/test_agent.py -v
 
-# Run with coverage
+# 运行带覆盖率的测试
 pytest tests/ -v --cov=mini_agent
 
-# Run core functionality tests
+# 运行核心功能测试
 pytest tests/test_agent.py tests/test_note_tool.py -v
 ```
 
-### Code Style and Conventions
+### 代码风格和约定
 
-**Commit Message Format**:
+**提交信息格式**:
 ```
-<type>(<scope>): <description>
+<类型>(<范围>): <描述>
 
-Types:
-- feat: New feature
-- fix: Bug fix
-- docs: Documentation changes
-- style: Code style (formatting, no logic change)
-- refactor: Code refactoring
-- test: Test changes
-- chore: Build/tooling changes
+类型:
+- feat: 新功能
+- fix: 错误修复
+- docs: 文档更改
+- style: 代码风格（格式化，无逻辑更改）
+- refactor: 代码重构
+- test: 测试更改
+- chore: 构建/工具更改
 
-Examples:
-- feat(tools): Add new file search tool
-- fix(agent): Fix error handling for tool calls
-- refactor(llm): Abstract LLM client for multiple providers
+示例:
+- feat(tools): 添加新的文件搜索工具
+- fix(agent): 修复工具调用的错误处理
+- refactor(llm): 为多个提供商抽象 LLM 客户端
 ```
 
-**Python Conventions**:
-- Type hints for all function parameters and return values
-- Docstrings for all classes and public methods
-- Use Pydantic for data validation
-- Async/await for I/O operations
-- pathlib.Path for file paths
+**Python 约定**:
+- 所有函数参数和返回值都使用类型提示
+- 所有类和公共方法都有文档字符串
+- 使用 Pydantic 进行数据验证
+- 使用 async/await 处理 I/O 操作
+- 使用 pathlib.Path 处理文件路径
 
-### Adding a New Tool
+### 添加新工具
 
-1. Create a new file in `mini_agent/tools/`:
+1. 在 `mini_agent/tools/` 中创建新文件：
 ```python
 from mini_agent.tools.base import Tool, ToolResult
 from typing import Dict, Any
@@ -293,7 +293,7 @@ class MyTool(Tool):
 
     @property
     def description(self) -> str:
-        return "Description of what this tool does"
+        return "此工具的功能描述"
 
     @property
     def parameters(self) -> Dict[str, Any]:
@@ -302,7 +302,7 @@ class MyTool(Tool):
             "properties": {
                 "param1": {
                     "type": "string",
-                    "description": "First parameter"
+                    "description": "第一个参数"
                 }
             },
             "required": ["param1"]
@@ -310,24 +310,24 @@ class MyTool(Tool):
 
     async def execute(self, param1: str) -> ToolResult:
         try:
-            # Tool logic here
-            return ToolResult(success=True, content="Result")
+            # 工具逻辑在这里
+            return ToolResult(success=True, content="结果")
         except Exception as e:
             return ToolResult(success=False, error=str(e))
 ```
 
-2. Register the tool in `mini_agent/cli.py`:
+2. 在 `mini_agent/cli.py` 中注册工具：
 ```python
 from mini_agent.tools.my_tool import MyTool
 
 tools.append(MyTool())
 ```
 
-3. Add tests in `tests/test_my_tool.py`
+3. 在 `tests/test_my_tool.py` 中添加测试
 
-### Adding MCP Tools
+### 添加 MCP 工具
 
-1. Edit `mini_agent/config/mcp.json`:
+1. 编辑 `mini_agent/config/mcp.json`：
 ```json
 {
   "mcpServers": {
@@ -343,124 +343,124 @@ tools.append(MyTool())
 }
 ```
 
-2. The tools will be automatically loaded at startup if `enable_mcp: true` in config.yaml
+2. 如果 config.yaml 中设置了 `enable_mcp: true`，工具将在启动时自动加载
 
-## Key Conventions for AI Assistants
+## AI 助手的关键约定
 
-### When Working with This Codebase
+### 使用此代码库时
 
-1. **Always Use uv**: This project uses `uv` for dependency management, not pip
+1. **始终使用 uv**: 此项目使用 `uv` 进行依赖管理，而不是 pip
    ```bash
-   # Install package
+   # 安装包
    uv pip install package-name
 
-   # Run Python
+   # 运行 Python
    uv run python script.py
 
-   # Sync dependencies
+   # 同步依赖
    uv sync
    ```
 
-2. **Respect the Workspace**: All file operations should be relative to `workspace_dir` unless absolute paths are needed
+2. **尊重工作空间**: 除非需要绝对路径，否则所有文件操作都应相对于 `workspace_dir`
 
-3. **Follow the Tool Pattern**: New tools must inherit from `Tool` and implement all required properties
+3. **遵循工具模式**: 新工具必须继承自 `Tool` 并实现所有必需的属性
 
-4. **Test Your Changes**: Always add tests for new features
+4. **测试你的更改**: 始终为新功能添加测试
    ```bash
    pytest tests/test_your_feature.py -v
    ```
 
-5. **Use Type Hints**: All new code should include proper type annotations
+5. **使用类型提示**: 所有新代码都应包含适当的类型注解
 
-6. **Handle Errors Gracefully**: Tools should return `ToolResult(success=False, error=...)` instead of raising exceptions
+6. **优雅地处理错误**: 工具应返回 `ToolResult(success=False, error=...)` 而不是抛出异常
 
-7. **Configuration Over Code**: Prefer configuration changes over code modifications when possible
+7. **配置优于代码**: 尽可能优先选择配置更改而不是代码修改
 
-8. **Document Your Work**: Update relevant documentation when adding features
+8. **记录你的工作**: 添加功能时更新相关文档
 
-### File Modifications
+### 文件修改
 
-**Before editing files**:
-- Always read the file first to understand current implementation
-- Use EditTool for existing files, WriteTool only for new files
-- Preserve existing style and formatting
-- Keep changes minimal and focused
+**编辑文件之前**:
+- 始终先读取文件以了解当前实现
+- 对现有文件使用 EditTool，仅对新文件使用 WriteTool
+- 保持现有的风格和格式
+- 保持更改最小化和集中
 
-**Path handling**:
-- Use `pathlib.Path` for all file operations
-- Support both absolute and workspace-relative paths
-- Create parent directories before writing files
+**路径处理**:
+- 对所有文件操作使用 `pathlib.Path`
+- 支持绝对路径和工作空间相对路径
+- 写入文件之前创建父目录
 
-### Testing Guidelines
+### 测试指南
 
-**Test coverage areas**:
-- Unit tests for individual tools
-- Functional tests for tool interactions
-- Integration tests for full agent execution
-- Mock external API calls in tests
+**测试覆盖范围**:
+- 单个工具的单元测试
+- 工具交互的功能测试
+- 完整智能体执行的集成测试
+- 在测试中模拟外部 API 调用
 
-**Test file naming**:
-- `test_<module_name>.py` for unit tests
-- `test_<feature>_integration.py` for integration tests
+**测试文件命名**:
+- `test_<模块名>.py` 用于单元测试
+- `test_<功能>_integration.py` 用于集成测试
 
-### Logging and Debugging
+### 日志和调试
 
-**Log levels**:
-- The project uses a custom `AgentLogger` class
-- Logs are written to workspace directory
-- Enable verbose logging for debugging
+**日志级别**:
+- 项目使用自定义的 `AgentLogger` 类
+- 日志写入工作空间目录
+- 启用详细日志记录以进行调试
 
-**Debugging tips**:
-- Check `workspace/*.log` files for detailed execution logs
-- Use `/stats` command in interactive mode to see execution statistics
-- Enable thinking blocks to see model reasoning
+**调试技巧**:
+- 检查 `workspace/*.log` 文件以获取详细的执行日志
+- 在交互模式下使用 `/stats` 命令查看执行统计信息
+- 启用思维块以查看模型推理
 
-### Common Pitfalls to Avoid
+### 要避免的常见陷阱
 
-1. **Don't bypass the Tool interface**: All agent capabilities must go through tools
-2. **Don't modify git submodules**: The skills directory is a submodule, don't edit it directly
-3. **Don't commit config.yaml**: It contains API keys and is gitignored
-4. **Don't use pip**: Always use `uv` for package management
-5. **Don't skip tests**: Test failures indicate real issues
-6. **Don't hard-code paths**: Use workspace_dir from config
-7. **Don't ignore token limits**: Context summarization is critical for long tasks
+1. **不要绕过工具接口**: 所有智能体功能都必须通过工具
+2. **不要修改 git 子模块**: skills 目录是子模块，不要直接编辑
+3. **不要提交 config.yaml**: 它包含 API 密钥并已被忽略
+4. **不要使用 pip**: 始终使用 `uv` 进行包管理
+5. **不要跳过测试**: 测试失败表示真实的问题
+6. **不要硬编码路径**: 使用配置中的 workspace_dir
+7. **不要忽略 token 限制**: 上下文摘要对长任务至关重要
 
-### Working with Git
+### 使用 Git
 
-**Branch naming**:
-- Feature branches: `feature/description`
-- Bug fixes: `fix/description`
-- Claude-specific: `claude/claude-md-<session-id>`
+**分支命名**:
+- 功能分支：`feature/description`
+- 错误修复：`fix/description`
+- Claude 特定：`claude/claude-md-<session-id>`
 
-**Before committing**:
-1. Run tests: `pytest tests/ -v`
-2. Check git status: `git status`
-3. Review changes: `git diff`
-4. Use conventional commit messages
+**提交之前**:
+1. 运行测试：`pytest tests/ -v`
+2. 检查 git 状态：`git status`
+3. 审查更改：`git diff`
+4. 使用常规提交消息
 
-**Pushing changes**:
+**推送更改**:
 ```bash
-# Push to feature branch with retry
-git push -u origin <branch-name>
+# 推送到功能分支并重试
+git push -u origin <分支名>
 
-# If push fails due to network, retry with exponential backoff
+# 如果由于网络推送失败，使用指数退避重试
 ```
 
-## Important Files and Their Purpose
+## 重要文件及其用途
 
-| File | Purpose |
+| 文件 | 用途 |
 |------|---------|
-| `mini_agent/agent.py` | Core agent execution loop and context management |
-| `mini_agent/cli.py` | Interactive CLI with prompt_toolkit |
-| `mini_agent/llm/llm_wrapper.py` | LLM client factory |
-| `mini_agent/config.py` | Configuration loading logic |
-| `mini_agent/tools/base.py` | Base Tool class - all tools inherit from this |
-| `mini_agent/config/config-example.yaml` | Configuration template |
-| `mini_agent/config/system_prompt.md` | System prompt for the agent |
-| `pyproject.toml` | Project metadata and dependencies |
-| `tests/test_agent.py` | Core agent functionality tests |
+| `mini_agent/agent.py` | 核心智能体执行循环和上下文管理 |
+| `mini_agent/cli.py` | 使用 prompt_toolkit 的交互式 CLI |
+| `mini_agent/llm/llm_wrapper.py` | LLM 客户端工厂 |
+| `mini_agent/config.py` | 配置加载逻辑 |
+| `mini_agent/tools/base.py` | 基础 Tool 类 - 所有工具都继承自此 |
+| `mini_agent/config/config-example.yaml` | 配置模板 |
+| `mini_agent/config/system_prompt.md` | 智能体的系统提示 |
+| `pyproject.toml` | 项目元数据和依赖 |
+| `tests/test_agent.py` | 核心智能体功能测试 |
 
-## API Documentation Links
+## API 文档链接
 
 - **MiniMax API**: https://platform.minimaxi.com/document
 - **MiniMax-M2**: https://github.com/MiniMax-AI/MiniMax-M2
@@ -468,52 +468,52 @@ git push -u origin <branch-name>
 - **Claude Skills**: https://github.com/anthropics/skills
 - **MCP Servers**: https://github.com/modelcontextprotocol/servers
 
-## Troubleshooting
+## 故障排除
 
-### SSL Certificate Errors
-If encountering `[SSL: CERTIFICATE_VERIFY_FAILED]`:
-- Quick fix for testing: Add `verify=False` to httpx.AsyncClient in `mini_agent/llm/`
-- Production solution: `pip install --upgrade certifi`
+### SSL 证书错误
+如果遇到 `[SSL: CERTIFICATE_VERIFY_FAILED]`：
+- 测试的快速修复：在 `mini_agent/llm/` 中的 httpx.AsyncClient 添加 `verify=False`
+- 生产解决方案：`pip install --upgrade certifi`
 
-### Module Not Found
-Ensure you're running from the project directory:
+### 模块未找到
+确保从项目目录运行：
 ```bash
 cd Mini-Agent
 uv run python -m mini_agent.cli
 ```
 
-### MCP Tools Not Loading
-- Check `mcp.json` configuration
-- Ensure `enable_mcp: true` in config.yaml
-- Check logs in workspace directory
-- Verify MCP server dependencies are installed
+### MCP 工具未加载
+- 检查 `mcp.json` 配置
+- 确保 config.yaml 中 `enable_mcp: true`
+- 检查工作空间目录中的日志
+- 验证 MCP 服务器依赖已安装
 
-### Token Limit Exceeded
-- Context summarization should trigger automatically at 80,000 tokens
-- Check `token_limit` in config.yaml
-- Use `/clear` command to reset context in interactive mode
+### Token 限制超出
+- 上下文摘要应在 80,000 tokens 时自动触发
+- 检查 config.yaml 中的 `token_limit`
+- 在交互模式下使用 `/clear` 命令重置上下文
 
-## Quick Reference for AI Assistants
+## AI 助手快速参考
 
-**When asked to**:
-- "Add a feature" → Create new tool in `mini_agent/tools/`, add tests, register in cli.py
-- "Fix a bug" → Identify file, read it, make minimal changes, add test case
-- "Run tests" → `pytest tests/ -v`
-- "Deploy" → See `docs/PRODUCTION_GUIDE.md`
-- "Add MCP tool" → Edit `mini_agent/config/mcp.json`
-- "Change behavior" → Check if configurable in `config.yaml` first
-- "Add skill" → Skills are in submodule, see `docs/DEVELOPMENT_GUIDE.md`
+**当被要求**:
+- "添加功能" → 在 `mini_agent/tools/` 中创建新工具，添加测试，在 cli.py 中注册
+- "修复错误" → 识别文件，读取它，进行最小更改，添加测试用例
+- "运行测试" → `pytest tests/ -v`
+- "部署" → 参见 `docs/PRODUCTION_GUIDE.md`
+- "添加 MCP 工具" → 编辑 `mini_agent/config/mcp.json`
+- "更改行为" → 首先检查是否可以在 `config.yaml` 中配置
+- "添加 skill" → Skills 在子模块中，参见 `docs/DEVELOPMENT_GUIDE.md`
 
-**Remember**:
-- This is a Python project using `uv`, not npm/node
-- All tools must be async and return ToolResult
-- Configuration files are in `mini_agent/config/`
-- Tests must pass before committing
-- Follow conventional commit messages
-- Respect the workspace directory pattern
+**记住**:
+- 这是使用 `uv` 的 Python 项目，不是 npm/node
+- 所有工具必须是异步的并返回 ToolResult
+- 配置文件在 `mini_agent/config/` 中
+- 提交前测试必须通过
+- 遵循常规提交消息
+- 尊重工作空间目录模式
 
 ---
 
-**Last Updated**: 2025-01-17
-**Project Version**: 0.1.0
-**Maintained by**: Mini Agent Team
+**最后更新**: 2025-01-17
+**项目版本**: 0.1.0
+**维护者**: Mini Agent 团队
