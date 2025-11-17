@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.api import auth, sessions, chat
 from app.models.database import init_db
+from app.utils.init_env import init_shared_env, check_shared_env
+from pathlib import Path
 
 settings = get_settings()
 
@@ -32,6 +34,29 @@ async def startup_event():
     # 初始化数据库
     init_db()
     print(f"✅ 数据库初始化完成")
+
+    # 初始化共享环境
+    shared_env_dir = Path(settings.workspace_base).parent / "shared_env"
+    venv_dir = shared_env_dir / "base.venv"
+
+    if not check_shared_env(venv_dir):
+        print("🔨 首次启动，正在初始化共享环境...")
+        print("   这可能需要几分钟时间（只会执行一次）")
+
+        packages_file = shared_env_dir / "allowed_packages.txt"
+        success = init_shared_env(
+            base_dir=shared_env_dir,
+            packages_file=packages_file if packages_file.exists() else None,
+            force=False
+        )
+
+        if success:
+            print("✅ 共享环境初始化完成")
+        else:
+            print("⚠️  共享环境初始化失败，部分功能可能不可用")
+    else:
+        print("✅ 共享环境已就绪")
+
     print(f"✅ {settings.app_name} v{settings.app_version} 启动成功")
 
 
