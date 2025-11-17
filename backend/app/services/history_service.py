@@ -4,6 +4,7 @@ from app.models.message import Message
 from app.models.session import Session
 from typing import List, Dict, Optional
 import json
+import uuid
 
 
 class HistoryService:
@@ -23,6 +24,7 @@ class HistoryService:
     ) -> Message:
         """保存消息到数据库"""
         message = Message(
+            id=str(uuid.uuid4()),  # 生成 UUID
             session_id=session_id,
             role=role,
             content=content,
@@ -35,14 +37,6 @@ class HistoryService:
         self.db.add(message)
         self.db.commit()
         self.db.refresh(message)
-
-        # 更新会话的消息计数
-        session = self.db.query(Session).filter(Session.id == session_id).first()
-        if session:
-            session.message_count += 1
-            if role == "user":
-                session.turn_count += 1
-            self.db.commit()
 
         return message
 

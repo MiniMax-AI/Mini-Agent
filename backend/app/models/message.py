@@ -1,5 +1,5 @@
 """消息数据模型"""
-from sqlalchemy import Column, String, Integer, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from datetime import datetime
 from .database import Base
 
@@ -9,7 +9,7 @@ class Message(Base):
 
     __tablename__ = "messages"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True)  # 改为 String UUID
     session_id = Column(
         String(36),
         ForeignKey("sessions.id", ondelete="CASCADE"),

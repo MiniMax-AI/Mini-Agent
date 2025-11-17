@@ -1,49 +1,39 @@
-# Mini-Agent 允许安装的 Python 包白名单
-# 基于 Claude Skills 需求分析
+# Mini-Agent 共享环境包白名单
+# 仅包含运行时必需的包，不包含开发工具
 
-# === 文档处理 (Document Skills) ===
-# PDF 处理
-pypdf>=3.0.0,<4.0.0
-pdfplumber>=0.10.0,<1.0.0
-reportlab>=4.0.0,<5.0.0
+# === 核心数据处理（必需）===
+pandas
+numpy
 
-# PowerPoint 处理
-python-pptx>=0.6.0,<1.0.0
+# === 文档处理 ===
+# PDF
+pypdf
+reportlab
 
-# Word 文档处理
-python-docx>=1.0.0,<2.0.0
+# PowerPoint
+python-pptx
 
-# Excel 处理
-openpyxl>=3.1.0,<4.0.0
-xlrd>=2.0.0,<3.0.0
-xlsxwriter>=3.0.0,<4.0.0
+# Word
+python-docx
 
-# === 数据处理 ===
-pandas>=2.0.0,<3.0.0
-numpy>=1.24.0,<2.0.0
+# Excel
+openpyxl
 
-# === 图像处理 (Canvas Design, GIF Creator) ===
-Pillow>=10.0.0,<11.0.0
+# === 图像处理 ===
+Pillow
 
 # === 可视化 ===
-matplotlib>=3.7.0,<4.0.0
-seaborn>=0.12.0,<1.0.0
+matplotlib
 
 # === 网络请求 ===
-requests>=2.31.0,<3.0.0
-httpx>=0.25.0,<1.0.0
+requests
 
 # === 工具库 ===
-pyyaml>=6.0,<7.0
-jinja2>=3.1.0,<4.0.0
-python-dateutil>=2.8.0,<3.0.0
+pyyaml
+python-dateutil
 
-# === 数学/科学计算 (Algorithmic Art) ===
-scipy>=1.11.0,<2.0.0
-
-# === 禁止的包（不在白名单） ===
-# - os-sys (系统访问)
-# - subprocess32 (进程执行)
-# - eval, exec 相关
-# - 任何加密货币、挖矿相关
-# - 任何系统管理、权限提升相关
+# 注意：
+# - 不包含开发工具（pytest, black, mypy 等）
+# - 不包含系统危险包（subprocess, os-sys 等）
+# - 只保留运行时必需的包
+# - 使用最新稳定版本，不锁定版本号（避免兼容性问题）
