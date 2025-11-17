@@ -1,6 +1,7 @@
 """Core Agent implementation."""
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 import tiktoken
@@ -64,6 +65,11 @@ class Agent:
         if "Current Workspace" not in system_prompt:
             workspace_info = f"\n\n## Current Workspace\nYou are currently working in: `{self.workspace_dir.absolute()}`\nAll relative paths will be resolved relative to this directory."
             system_prompt = system_prompt + workspace_info
+
+        # Inject current date and time into system prompt
+        current_time = datetime.now()
+        time_info = f"\n\n## Current Date and Time\nCurrent date and time: {current_time.strftime('%Y-%m-%d %H:%M:%S')} ({current_time.strftime('%A')})"
+        system_prompt = system_prompt + time_info
 
         self.system_prompt = system_prompt
 
