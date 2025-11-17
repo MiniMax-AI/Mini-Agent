@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     llm_model: str = "MiniMax-Text-01"  # 模型名称
     llm_provider: str = "anthropic"  # 提供商：anthropic 或 openai
 
+    # 搜索工具配置（可选）
+    zhipu_api_key: str = ""  # 智谱 AI API 密钥，用于搜索工具
+
     # 工作空间配置
     workspace_base: Path = Path("./data/workspaces")
     shared_env_path: Path = Path("./data/shared_env/base.venv")

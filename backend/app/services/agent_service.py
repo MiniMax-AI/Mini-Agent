@@ -102,8 +102,8 @@ class AgentService:
         ]
 
         # 添加搜索工具（如果配置了 API Key）
-        zhipu_api_key = os.getenv("ZHIPU_API_KEY")
-        if zhipu_api_key:
+        zhipu_api_key = settings.zhipu_api_key
+        if zhipu_api_key and zhipu_api_key.strip():
             try:
                 from mini_agent.tools.glm_search_tool import GLMSearchTool, GLMBatchSearchTool
                 tools.append(GLMSearchTool(api_key=zhipu_api_key))
