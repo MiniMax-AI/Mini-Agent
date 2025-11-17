@@ -149,8 +149,21 @@ class AgentService:
         # 添加到 agent
         self.agent.add_user_message(user_message)
 
-        # 执行 agent
-        response = await self.agent.run()
+        # 执行 agent（添加详细错误处理）
+        try:
+            response = await self.agent.run()
+        except Exception as e:
+            # 记录详细错误
+            import traceback
+            error_detail = traceback.format_exc()
+            print(f"\n{'='*60}")
+            print(f"❌ Agent 执行错误")
+            print(f"{'='*60}")
+            print(f"错误类型: {type(e).__name__}")
+            print(f"错误信息: {str(e)}")
+            print(f"\n详细堆栈:\n{error_detail}")
+            print(f"{'='*60}\n")
+            raise RuntimeError(f"Agent执行失败: {str(e)}")
 
         # 保存 agent 生成的消息
         self._save_new_messages()
