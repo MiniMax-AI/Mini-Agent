@@ -56,6 +56,8 @@ class LLMClient:
         # Append provider-specific suffix to api_base
         if provider == LLMProvider.ANTHROPIC:
             full_api_base = f"{api_base.rstrip('/')}/anthropic"
+        elif provider == LLMProvider.OPENAI and 'glm' in self.model:
+            full_api_base = f"{api_base.rstrip('/')}"
         elif provider == LLMProvider.OPENAI:
             full_api_base = f"{api_base.rstrip('/')}/v1"
         else:

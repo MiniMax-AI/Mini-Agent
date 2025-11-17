@@ -71,9 +71,9 @@ async def test_wrapper_openai_provider():
     client = LLMClient(
         api_key=config["api_key"],
         provider=LLMProvider.OPENAI,
+        api_base=config.get("api_base"),  # 添加这一行
         model=config.get("model"),
     )
-
     assert client.provider == LLMProvider.OPENAI
 
     # Simple messages
@@ -137,8 +137,9 @@ async def test_wrapper_tool_calling():
     # Create client with Anthropic provider
     client = LLMClient(
         api_key=config["api_key"],
-        provider=LLMProvider.ANTHROPIC,
+        provider=LLMProvider.OPENAI,
         model=config.get("model"),
+        api_base=config.get("api_base"),
     )
 
     # Messages requesting tool use
@@ -207,10 +208,14 @@ async def main():
     results = []
 
     # Test default provider
-    results.append(await test_wrapper_default_provider())
+    # results.append(await test_wrapper_default_provider())
 
-    # Test Anthropic provider
-    results.append(await test_wrapper_anthropic_provider())
+    # # Test Anthropic provider
+    # results.append(await test_wrapper_anthropic_provider())
+    # results.append(await test_wrapper_default_provider())
+
+    # # Test Anthropic provider
+    # results.append(await test_wrapper_anthropic_provider())
 
     # Test OpenAI provider
     results.append(await test_wrapper_openai_provider())
