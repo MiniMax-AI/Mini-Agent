@@ -9,6 +9,19 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=10000, description="用户消息")
 
 
+class SendMessageRequest(BaseModel):
+    """发送消息请求（前端期望的格式）"""
+
+    message: str = Field(..., min_length=1, max_length=10000, description="用户消息")
+
+
+class SendMessageResponse(BaseModel):
+    """发送消息响应（前端期望的格式）"""
+
+    message: str  # 用户发送的消息
+    response: str  # AI 的响应
+
+
 class ChatResponse(BaseModel):
     """对话响应"""
 

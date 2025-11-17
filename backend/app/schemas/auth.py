@@ -12,6 +12,5 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     """登录响应"""
 
-    user_id: str
-    username: str
+    session_id: str  # 前端期望的字段名
     message: str = "登录成功"

@@ -1,6 +1,6 @@
 """简单认证 API"""
-from fastapi import APIRouter, HTTPException
-from app.schemas.auth import LoginRequest, LoginResponse
+from fastapi import APIRouter, HTTPException, Form
+from app.schemas.auth import LoginResponse
 from app.config import get_settings
 
 router = APIRouter()
@@ -8,7 +8,7 @@ settings = get_settings()
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login(request: LoginRequest):
+async def login(username: str = Form(...), password: str = Form(...)):
     """
     简单登录接口
 
@@ -18,16 +18,16 @@ async def login(request: LoginRequest):
     auth_users = settings.get_auth_users()
 
     # 验证用户名和密码
-    if request.username not in auth_users:
+    if username not in auth_users:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
 
-    if auth_users[request.username] != request.password:
+    if auth_users[username] != password:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
 
     # 登录成功，返回用户信息
+    # 使用 username 作为 session_id（简化方案）
     return LoginResponse(
-        user_id=request.username,  # 简化：直接使用 username 作为 user_id
-        username=request.username,
+        session_id=username,
         message="登录成功",
     )
 
