@@ -175,7 +175,7 @@ Examples:
             results: List of QuerySearchResult objects
 
         Returns:
-            Formatted string representation
+            Formatted string representation (model-friendly, concise format)
         """
         if not results:
             return "No search results found."
@@ -184,24 +184,24 @@ Examples:
 
         for query_result in results:
             output_parts.append(f"Query: {query_result.query}")
-            output_parts.append("=" * 60)
 
             if not query_result.success:
                 output_parts.append(
-                    f"❌ Search failed: {query_result.error_message}\n"
+                    f"Error: {query_result.error_message}"
                 )
+                output_parts.append("")
                 continue
 
             if not query_result.results:
-                output_parts.append("No results found.\n")
+                output_parts.append("No results found.")
+                output_parts.append("")
                 continue
 
             for idx, result in enumerate(query_result.results, 1):
-                output_parts.append(f"\n{idx}. {result['title']}")
-                output_parts.append(f"   Source: {result['source']}")
-                output_parts.append(f"   Link: {result['link']}")
-                output_parts.append(f"   Snippet: {result['snippet'][:200]}...")
-                output_parts.append("")
+                output_parts.append(f"\n[{idx}] {result['title']}")
+                output_parts.append(f"URL: {result['link']}")
+                output_parts.append(f"Source: {result['source']}")
+                output_parts.append(f"Content: {result['snippet']}")
 
             output_parts.append("")
 
@@ -380,7 +380,7 @@ Example:
             )
 
     def _format_search_results(self, results: list[QuerySearchResult]) -> str:
-        """Format search results for display."""
+        """Format search results for display (model-friendly, concise format)."""
         if not results:
             return "No search results found."
 
@@ -388,24 +388,24 @@ Example:
 
         for query_result in results:
             output_parts.append(f"Query: {query_result.query}")
-            output_parts.append("=" * 60)
 
             if not query_result.success:
                 output_parts.append(
-                    f"❌ Search failed: {query_result.error_message}\n"
+                    f"Error: {query_result.error_message}"
                 )
+                output_parts.append("")
                 continue
 
             if not query_result.results:
-                output_parts.append("No results found.\n")
+                output_parts.append("No results found.")
+                output_parts.append("")
                 continue
 
             for idx, result in enumerate(query_result.results, 1):
-                output_parts.append(f"\n{idx}. {result['title']}")
-                output_parts.append(f"   Source: {result['source']}")
-                output_parts.append(f"   Link: {result['link']}")
-                output_parts.append(f"   Snippet: {result['snippet'][:200]}...")
-                output_parts.append("")
+                output_parts.append(f"\n[{idx}] {result['title']}")
+                output_parts.append(f"URL: {result['link']}")
+                output_parts.append(f"Source: {result['source']}")
+                output_parts.append(f"Content: {result['snippet']}")
 
             output_parts.append("")
 
