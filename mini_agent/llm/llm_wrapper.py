@@ -73,12 +73,21 @@ class LLMClient:
                 retry_config=retry_config,
             )
         elif provider == LLMProvider.OPENAI:
+            # Auto-detect if we should enable reasoning_split
+            # Enable for MiniMax and GLM models (both support interleaved thinking)
+            # Disable for standard GPT models
+            enable_reasoning_split = (
+                model.startswith("MiniMax") or model.lower().startswith("glm")
+            )
+
             self._client = OpenAIClient(
                 api_key=api_key,
                 api_base=full_api_base,
                 model=model,
                 retry_config=retry_config,
+                enable_reasoning_split=enable_reasoning_split,
             )
+            logger.info("OpenAI client reasoning_split: %s (model: %s)", enable_reasoning_split, model)
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
