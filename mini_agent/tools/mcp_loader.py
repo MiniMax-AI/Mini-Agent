@@ -7,6 +7,7 @@ from typing import Any
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from mcp.client.streamable_http import streamablehttp_client
 
 from .base import Tool, ToolResult
 
@@ -147,8 +148,80 @@ class MCPServerConnection:
             self.session = None
 
 
+class HTTPMCPServerConnection:
+    """Manages connection to a single HTTP MCP server."""
+
+    def __init__(self, name: str, url: str, headers: dict[str, str] | None = None):
+        self.name = name
+        self.url = url
+        self.headers = headers or {}
+        self.session: ClientSession | None = None
+        self.exit_stack: AsyncExitStack | None = None
+        self.tools: list[MCPTool] = []
+
+    async def connect(self) -> bool:
+        """Connect to the MCP server using proper async context management."""
+        try:
+            # Use AsyncExitStack to properly manage multiple async context managers
+            self.exit_stack = AsyncExitStack()
+
+            # Enter streamable HTTP client context
+            read_stream, write_stream, get_session_id = await self.exit_stack.enter_async_context(
+                streamablehttp_client(url=self.url, headers=self.headers)
+            )
+
+            # Enter client session context
+            session = await self.exit_stack.enter_async_context(
+                ClientSession(read_stream, write_stream)
+            )
+            self.session = session
+
+            # Initialize the session
+            await session.initialize()
+
+            # List available tools
+            tools_list = await session.list_tools()
+
+            # Wrap each tool
+            for tool in tools_list.tools:
+                # Convert MCP tool schema to our format
+                parameters = tool.inputSchema if hasattr(tool, 'inputSchema') else {}
+
+                mcp_tool = MCPTool(
+                    name=tool.name,
+                    description=tool.description or "",
+                    parameters=parameters,
+                    session=session
+                )
+                self.tools.append(mcp_tool)
+
+            print(f"✓ Connected to MCP server '{self.name}' - loaded {len(self.tools)} tools")
+            for tool in self.tools:
+                desc = tool.description[:60] if len(tool.description) > 60 else tool.description
+                print(f"  - {tool.name}: {desc}...")
+            return True
+
+        except Exception as e:
+            print(f"✗ Failed to connect to MCP server '{self.name}': {e}")
+            # Clean up exit stack if connection failed
+            if self.exit_stack:
+                await self.exit_stack.aclose()
+                self.exit_stack = None
+            import traceback
+            traceback.print_exc()
+            return False
+
+    async def disconnect(self):
+        """Properly disconnect from the MCP server."""
+        if self.exit_stack:
+            # AsyncExitStack handles all cleanup properly
+            await self.exit_stack.aclose()
+            self.exit_stack = None
+            self.session = None
+
+
 # Global connections registry
-_mcp_connections: list[MCPServerConnection] = []
+_mcp_connections: list[MCPServerConnection | HTTPMCPServerConnection] = []
 
 
 async def load_mcp_tools_async(config_path: str = "mcp.json") -> list[Tool]:
@@ -194,20 +267,40 @@ async def load_mcp_tools_async(config_path: str = "mcp.json") -> list[Tool]:
                 print(f"Skipping disabled server: {server_name}")
                 continue
 
-            command = server_config.get("command")
-            args = server_config.get("args", [])
-            env = server_config.get("env", {})
+            # Detect connection mode (stdio or streamable-http)
+            mode = server_config.get("mode", "stdio")
+            url = server_config.get("url")
 
-            if not command:
-                print(f"No command specified for server: {server_name}")
-                continue
+            # HTTP/streamable-http mode
+            if mode == "streamable-http" or url:
+                if not url:
+                    print(f"No URL specified for HTTP server: {server_name}")
+                    continue
 
-            connection = MCPServerConnection(server_name, command, args, env)
-            success = await connection.connect()
+                headers = server_config.get("headers", {})
+                connection = HTTPMCPServerConnection(server_name, url, headers)
+                success = await connection.connect()
 
-            if success:
-                _mcp_connections.append(connection)
-                all_tools.extend(connection.tools)
+                if success:
+                    _mcp_connections.append(connection)
+                    all_tools.extend(connection.tools)
+
+            # Default stdio mode
+            else:
+                command = server_config.get("command")
+                args = server_config.get("args", [])
+                env = server_config.get("env", {})
+
+                if not command:
+                    print(f"No command specified for stdio server: {server_name}")
+                    continue
+
+                connection = MCPServerConnection(server_name, command, args, env)
+                success = await connection.connect()
+
+                if success:
+                    _mcp_connections.append(connection)
+                    all_tools.extend(connection.tools)
 
         print(f"\nTotal MCP tools loaded: {len(all_tools)}")
 
