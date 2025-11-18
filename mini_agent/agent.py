@@ -367,10 +367,8 @@ Requirements:
                 self.current_step = 0
                 return response.content
 
-            # Execute tool calls
+            # Execute all tool calls before checking for stop requests again
             for tool_call in response.tool_calls:
-                if self._check_stop_requested():
-                    return "Agent run interrupted by user."
 
                 tool_call_id = tool_call.id
                 function_name = tool_call.function.name
@@ -445,6 +443,9 @@ Requirements:
 
             step += 1
             self.current_step = step
+
+            if self._check_stop_requested():
+                return "Agent run interrupted by user."
 
         # Max steps reached
         error_msg = f"Task couldn't be completed after {self.max_steps} steps."
