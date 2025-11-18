@@ -76,6 +76,7 @@ class Agent:
         # Stop control flag, allows external interrupt requests
         self._stop_requested = False
         self._stop_notified = False
+        self._paused = False
         self.current_step = 0
         self._run_active = False
 
@@ -91,6 +92,7 @@ class Agent:
     def _reset_stop_request(self):
         self._stop_requested = False
         self._stop_notified = False
+        self._paused = False
 
     def _check_stop_requested(self) -> bool:
         """Return True if a stop was requested and emit a single notification."""
@@ -99,7 +101,12 @@ class Agent:
         if not self._stop_notified:
             print(f"\n{Colors.BRIGHT_YELLOW}⏸️  Agent paused by user (press Enter to continue interacting).{Colors.RESET}\n")
             self._stop_notified = True
+        self._paused = True
         return True
+
+    def is_paused(self) -> bool:
+        """Whether the agent halted due to a stop request."""
+        return self._paused
 
     def _estimate_tokens(self) -> int:
         """Accurately calculate token count for message history using tiktoken
@@ -329,6 +336,7 @@ Requirements:
                     print(f"\n{Colors.BRIGHT_RED}❌ Error:{Colors.RESET} {error_msg}")
                 self._run_active = False
                 self.current_step = 0
+                self._paused = False
                 return error_msg
 
             if self._check_stop_requested():
@@ -365,6 +373,7 @@ Requirements:
             if not response.tool_calls:
                 self._run_active = False
                 self.current_step = 0
+                self._paused = False
                 return response.content
 
             # Execute all tool calls before checking for stop requests again
@@ -452,6 +461,7 @@ Requirements:
         print(f"\n{Colors.BRIGHT_YELLOW}⚠️  {error_msg}{Colors.RESET}")
         self._run_active = False
         self.current_step = 0
+        self._paused = False
         return error_msg
 
     def get_history(self) -> list[Message]:

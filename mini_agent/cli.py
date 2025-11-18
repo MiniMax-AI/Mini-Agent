@@ -182,7 +182,7 @@ def print_help():
   {Colors.BRIGHT_CYAN}Tab{Colors.RESET}        - Auto-complete commands
   {Colors.BRIGHT_CYAN}↑/↓{Colors.RESET}        - Browse command history
   {Colors.BRIGHT_CYAN}→{Colors.RESET}          - Accept auto-suggestion
-  {Colors.BRIGHT_CYAN}Esc{Colors.RESET}        - Pause the current agent run
+  {Colors.BRIGHT_CYAN}Esc{Colors.RESET}        - Pause the current agent run (press Enter to resume)
 
 {Colors.BOLD}{Colors.BRIGHT_YELLOW}Usage:{Colors.RESET}
   - Enter your task directly, Agent will help you complete it
@@ -190,7 +190,7 @@ def print_help():
   - Use {Colors.BRIGHT_GREEN}/clear{Colors.RESET} to start a new session
   - Press {Colors.BRIGHT_CYAN}Enter{Colors.RESET} to submit your message
   - Use {Colors.BRIGHT_CYAN}Ctrl+J{Colors.RESET} to insert line breaks within your message
-  - Press {Colors.BRIGHT_CYAN}Esc{Colors.RESET} anytime during execution to stop the agent
+  - Press {Colors.BRIGHT_CYAN}Esc{Colors.RESET} anytime during execution to stop the agent, then press Enter (empty line) to resume
 """
     print(help_text)
 
@@ -570,6 +570,13 @@ async def run_agent(workspace_dir: Path):
         key_bindings=kb,
     )
 
+    async def invoke_agent_run():
+        print(f"\n{Colors.BRIGHT_BLUE}Agent{Colors.RESET} {Colors.DIM}›{Colors.RESET} {Colors.DIM}Thinking...{Colors.RESET}\n")
+        async with EscapeKeyListener(agent):
+            return await agent.run()
+
+    resume_pending = False
+
     # 9. Interactive loop
     while True:
         try:
@@ -586,7 +593,14 @@ async def run_agent(workspace_dir: Path):
             user_input = user_input.strip()
 
             if not user_input:
-                continue
+                if resume_pending:
+                    result = await invoke_agent_run()
+                    resume_pending = agent.is_paused()
+                    if not resume_pending:
+                        print(f"\n{Colors.DIM}{'─' * 60}{Colors.RESET}\n")
+                    continue
+                else:
+                    continue
 
             # Handle commands
             if user_input.startswith("/"):
@@ -599,6 +613,7 @@ async def run_agent(workspace_dir: Path):
 
                 elif command == "/help":
                     print_help()
+                    resume_pending = False
                     continue
 
                 elif command == "/clear":
@@ -606,19 +621,23 @@ async def run_agent(workspace_dir: Path):
                     old_count = len(agent.messages)
                     agent.messages = [agent.messages[0]]  # Keep only system message
                     print(f"{Colors.GREEN}✅ Cleared {old_count - 1} messages, starting new session{Colors.RESET}\n")
+                    resume_pending = False
                     continue
 
                 elif command == "/history":
                     print(f"\n{Colors.BRIGHT_CYAN}Current session message count: {len(agent.messages)}{Colors.RESET}\n")
+                    resume_pending = False
                     continue
 
                 elif command == "/stats":
                     print_stats(agent, session_start)
+                    resume_pending = False
                     continue
 
                 else:
                     print(f"{Colors.RED}❌ Unknown command: {user_input}{Colors.RESET}")
                     print(f"{Colors.DIM}Type /help to see available commands{Colors.RESET}\n")
+                    resume_pending = False
                     continue
 
             # Normal conversation - exit check
@@ -628,13 +647,13 @@ async def run_agent(workspace_dir: Path):
                 break
 
             # Run Agent
-            print(f"\n{Colors.BRIGHT_BLUE}Agent{Colors.RESET} {Colors.DIM}›{Colors.RESET} {Colors.DIM}Thinking...{Colors.RESET}\n")
             agent.add_user_message(user_input)
-            async with EscapeKeyListener(agent):
-                _ = await agent.run()
+            result = await invoke_agent_run()
+            resume_pending = agent.is_paused()
 
-            # Visual separation - keep it simple like the reference code
-            print(f"\n{Colors.DIM}{'─' * 60}{Colors.RESET}\n")
+            if not resume_pending:
+                # Visual separation - keep it simple like the reference code
+                print(f"\n{Colors.DIM}{'─' * 60}{Colors.RESET}\n")
 
         except KeyboardInterrupt:
             print(f"\n\n{Colors.BRIGHT_YELLOW}👋 Interrupt signal detected, exiting...{Colors.RESET}\n")
