@@ -19,19 +19,21 @@ class LLMClient:
     """LLM Client wrapper supporting multiple providers.
 
     This class provides a unified interface for different LLM providers.
-    It automatically instantiates the correct underlying client based on
-    the provider parameter and appends the appropriate API endpoint suffix.
+    It instantiates the correct underlying client based on the provider
+    parameter. The given api_base is passed through as-is.
 
     Supported providers:
-    - anthropic: Appends /anthropic to api_base
-    - openai: Appends /v1 to api_base
+    - anthropic: api_base should point to the Anthropic-compatible root
+      (e.g., https://api.minimaxi.com/anthropic)
+    - openai: api_base should point to the OpenAI-compatible root
+      (e.g., https://api.minimaxi.com/v1)
     """
 
     def __init__(
         self,
         api_key: str,
         provider: LLMProvider = LLMProvider.ANTHROPIC,
-        api_base: str = "https://api.minimaxi.com",
+        api_base: str = "https://api.minimax.io/anthropic",
         model: str = "MiniMax-M2",
         retry_config: RetryConfig | None = None,
     ):
@@ -40,8 +42,7 @@ class LLMClient:
         Args:
             api_key: API key for authentication
             provider: LLM provider (anthropic or openai)
-            api_base: Base URL for the API (default: https://api.minimaxi.com)
-                     Will be automatically suffixed with /anthropic or /v1 based on provider
+            api_base: Base URL for the API. Must be the full provider-specific base.
             model: Model name to use
             retry_config: Optional retry configuration
         """
@@ -50,39 +51,31 @@ class LLMClient:
         self.model = model
         self.retry_config = retry_config or RetryConfig()
 
-        # for backward compatibility
-        api_base = api_base.replace("/anthropic", "")
-
-        # Append provider-specific suffix to api_base
-        if provider == LLMProvider.ANTHROPIC:
-            full_api_base = f"{api_base.rstrip('/')}/anthropic"
-        elif provider == LLMProvider.OPENAI:
-            full_api_base = f"{api_base.rstrip('/')}/v1"
-        else:
+        if provider not in (LLMProvider.ANTHROPIC, LLMProvider.OPENAI):
             raise ValueError(f"Unsupported provider: {provider}")
 
-        self.api_base = full_api_base
+        self.api_base = api_base
 
         # Instantiate the appropriate client
         self._client: LLMClientBase
         if provider == LLMProvider.ANTHROPIC:
             self._client = AnthropicClient(
                 api_key=api_key,
-                api_base=full_api_base,
+                api_base=api_base,
                 model=model,
                 retry_config=retry_config,
             )
         elif provider == LLMProvider.OPENAI:
             self._client = OpenAIClient(
                 api_key=api_key,
-                api_base=full_api_base,
+                api_base=api_base,
                 model=model,
                 retry_config=retry_config,
             )
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
-        logger.info("Initialized LLM client with provider: %s, api_base: %s", provider, full_api_base)
+        logger.info("Initialized LLM client with provider: %s, api_base: %s", provider, api_base)
 
     @property
     def retry_callback(self):
