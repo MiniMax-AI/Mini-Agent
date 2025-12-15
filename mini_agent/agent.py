@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from time import perf_counter
 
 import tiktoken
 
@@ -285,8 +286,10 @@ Requirements:
         print(f"{Colors.DIM}📝 Log file: {self.logger.get_log_file_path()}{Colors.RESET}")
 
         step = 0
+        step_start_time = None
 
         while step < self.max_steps:
+            step_start_time = perf_counter()
             # Check and summarize message history to prevent context overflow
             await self._summarize_messages()
 
@@ -353,6 +356,8 @@ Requirements:
 
             # Check if task is complete (no tool calls)
             if not response.tool_calls:
+                step_elapsed = perf_counter() - step_start_time
+                print(f"{Colors.DIM}⏱️  Step {step + 1} completed in {step_elapsed:.2f}s{Colors.RESET}")
                 return response.content
 
             # Execute tool calls
@@ -427,6 +432,9 @@ Requirements:
                     name=function_name,
                 )
                 self.messages.append(tool_msg)
+
+            step_elapsed = perf_counter() - step_start_time
+            print(f"{Colors.DIM}⏱️  Step {step + 1} completed in {step_elapsed:.2f}s{Colors.RESET}")
 
             step += 1
 
