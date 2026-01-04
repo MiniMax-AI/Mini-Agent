@@ -19,7 +19,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#faf9f5" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#141413" media="(prefers-color-scheme: dark)">
     <title>Generative Art Viewer</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIkdlbmVyYXRpdmUgQXJ0IFZpZXdlciIsICJzaG9ydF9uYW1lIjogIkFydCBWaWV3ZXIiLCAic3RhcnRfdXJsIjogIi4iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgImRpc3BsYXlfb3ZlcnJpZGUiOiBbIndpbmRvdy1jb250cm9scy1vdmVybGF5Il0sICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxNDE0MTMiLCAidGhlbWVfY29sb3IiOiAiIzE0MTQxMyIsICJpY29ucyI6IFtdfQ==">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +37,39 @@
             --anthropic-orange: #d97757;
             --anthropic-blue: #6a9bcc;
             --anthropic-green: #788c5d;
+            
+            /* Theme Variables */
+            --bg-color: var(--anthropic-light);
+            --bg-gradient-end: #f5f3ee;
+            --text-color: var(--anthropic-dark);
+            --sidebar-bg: rgba(255, 255, 255, 0.95);
+            --input-bg: var(--anthropic-light);
+            --input-focus-bg: white;
+            --canvas-container-bg: white;
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #141413;
+                --bg-gradient-end: #1a1a19;
+                --text-color: #faf9f5;
+                --sidebar-bg: rgba(30, 30, 29, 0.95);
+                --input-bg: #2a2a29;
+                --input-focus-bg: #3a3a39;
+                --canvas-container-bg: #1a1a19;
+                --anthropic-light-gray: #4a4a49;
+            }
+            
+            /* Adjust headings for dark mode */
+            .sidebar h1, .control-section h3, .control-group label {
+                color: var(--text-color);
+            }
+
+            .seed-input {
+                color: var(--text-color);
+                border-color: #4a4a49;
+            }
         }
 
         * {
@@ -44,9 +80,9 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
-            color: var(--anthropic-dark);
+            color: var(--text-color);
         }
 
         .container {
@@ -54,17 +90,20 @@
             min-height: 100vh;
             padding: 20px;
             gap: 20px;
+            
+            /* PWA Title Bar Spacing */
+            padding-top: env(titlebar-area-height, 20px);
         }
 
         /* Sidebar */
         .sidebar {
             width: 320px;
             flex-shrink: 0;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--sidebar-bg);
             backdrop-filter: blur(10px);
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -73,7 +112,7 @@
             font-family: 'Lora', serif;
             font-size: 24px;
             font-weight: 500;
-            color: var(--anthropic-dark);
+            color: var(--text-color);
             margin-bottom: 8px;
         }
 
@@ -92,7 +131,7 @@
         .control-section h3 {
             font-size: 16px;
             font-weight: 600;
-            color: var(--anthropic-dark);
+            color: var(--text-color);
             margin-bottom: 16px;
             display: flex;
             align-items: center;
@@ -108,7 +147,7 @@
         /* Seed Controls */
         .seed-input {
             width: 100%;
-            background: var(--anthropic-light);
+            background: var(--input-bg);
             padding: 12px;
             border-radius: 8px;
             font-family: 'Courier New', monospace;
@@ -116,13 +155,14 @@
             margin-bottom: 12px;
             border: 1px solid var(--anthropic-light-gray);
             text-align: center;
+            color: var(--text-color);
         }
 
         .seed-input:focus {
             outline: none;
             border-color: var(--anthropic-orange);
             box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1);
-            background: white;
+            background: var(--input-focus-bg);
         }
 
         .seed-controls {
@@ -145,7 +185,7 @@
             display: block;
             font-size: 14px;
             font-weight: 500;
-            color: var(--anthropic-dark);
+            color: var(--text-color);
             margin-bottom: 8px;
         }
 
@@ -293,8 +333,8 @@
             max-width: 1000px;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1);
-            background: white;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            background: var(--canvas-container-bg);
         }
 
         #canvas-container canvas {
