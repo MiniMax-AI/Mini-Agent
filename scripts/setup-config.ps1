@@ -63,9 +63,9 @@ try {
     Write-ColorOutput "   ✗ Failed to download: config.yaml" -Color "Red"
 }
 
-# Download mcp.json (optional)
+# Download mcp.json (optional, from example template)
 try {
-    $mcpUrl = "$GITHUB_RAW_URL/mcp.json"
+    $mcpUrl = "$GITHUB_RAW_URL/mcp-example.json"
     $mcpPath = Join-Path $CONFIG_DIR "mcp.json"
     Invoke-WebRequest -Uri $mcpUrl -OutFile $mcpPath -UseBasicParsing
     Write-ColorOutput "   ✓ Downloaded: mcp.json" -Color "Green"

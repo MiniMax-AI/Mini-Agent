@@ -118,6 +118,10 @@ api_base: "https://api.minimaxi.com"  # 国内版
 model: "MiniMax-M2.1"
 ```
 
+（可选）MCP 工具（网页搜索、记忆等）配置：
+- 配置脚本也会下载一个模板 `mcp.json` 到 `~/.mini-agent/config/mcp.json`。
+- 如需启用 MCP 服务器，请编辑该文件并填写 API Key；不配置也可正常运行（仅不加载 MCP 工具）。
+
 **开始使用：**
 
 ```bash
@@ -175,6 +179,11 @@ Copy-Item mini_agent\config\config-example.yaml mini_agent\config\config.yaml
 # 6. 编辑配置文件
 vim mini_agent/config/config.yaml  # 或使用您偏好的编辑器
 ```
+
+（可选）配置 MCP 工具：
+- 将 `mini_agent/config/mcp-example.json` 复制为 `mini_agent/config/mcp.json`（该文件已加入 gitignore）。
+- 编辑 `mini_agent/config/mcp.json`，启用需要的 MCP 服务器并填写 API Key。
+- 不配置也可运行，但不会加载 MCP 工具。
 
 填入您的 API Key 和对应的 API Base：
 

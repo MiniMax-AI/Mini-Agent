@@ -43,6 +43,7 @@ Thumbs.db
 
 # Config (contains API keys)
 config.yaml
+mcp.json
 
 # test file
 demo.py

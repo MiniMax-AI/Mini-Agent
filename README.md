@@ -118,6 +118,10 @@ api_base: "https://api.minimax.io"  # Global
 model: "MiniMax-M2.1"
 ```
 
+(Optional) MCP tools (web search, memory):
+- The setup script also downloads a template `mcp.json` to `~/.mini-agent/config/mcp.json`.
+- Edit it to enable servers and add API keys, or leave it disabled to run without MCP tools.
+
 **Start Using:**
 
 ```bash
@@ -175,6 +179,11 @@ Copy-Item mini_agent\config\config-example.yaml mini_agent\config\config.yaml
 # 6. Edit config file
 vim mini_agent/config/config.yaml  # Or use your preferred editor
 ```
+
+(Optional) Configure MCP tools:
+- Copy `mini_agent/config/mcp-example.json` to `mini_agent/config/mcp.json` (this file is gitignored).
+- Edit `mini_agent/config/mcp.json` to enable MCP servers and set API keys.
+- If you skip this, Mini Agent still runs but without MCP tools.
 
 Fill in your API Key and corresponding API Base:
 

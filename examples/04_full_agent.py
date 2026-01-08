@@ -90,12 +90,12 @@ You have record_note and recall_notes tools. Use them to:
 
         # Load MCP tools (if configured)
         try:
-            mcp_tools = await load_mcp_tools_async(config_path="mini_agent/config/mcp.json")
+            mcp_tools = await load_mcp_tools_async(config_path="mini_agent/config/mcp-example.json")
             if mcp_tools:
                 tools.extend(mcp_tools)
                 print(f"✓ Loaded {len(mcp_tools)} MCP tools")
             else:
-                print("⚠️  No MCP tools configured (mcp.json is empty or disabled)")
+                print("⚠️  No MCP tools configured (config is empty or disabled)")
         except Exception as e:
             print(f"⚠️  MCP tools not loaded: {e}")
 

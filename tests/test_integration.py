@@ -72,16 +72,16 @@ async def test_basic_agent_usage():
 
         # Load MCP tools (optional) - with timeout protection
         try:
-            # MCP tools are disabled by default to prevent test hangs
-            # Enable specific MCP servers in mcp.json if needed
+            # MCP tools are disabled by default to prevent test hangs.
+            # To enable, copy mcp-example.json to mcp.json and edit it.
             mcp_tools = await load_mcp_tools_async(
-                config_path="mini_agent/config/mcp.json"
+                config_path="mini_agent/config/mcp-example.json"
             )
             if mcp_tools:
                 print(f"✓ Loaded {len(mcp_tools)} MCP tools")
                 tools.extend(mcp_tools)
             else:
-                print("⚠️  No MCP tools configured (mcp.json is empty)")
+                print("⚠️  No MCP tools configured (config is empty or disabled)")
         except Exception as e:
             print(f"⚠️  MCP tools not loaded: {e}")
 
