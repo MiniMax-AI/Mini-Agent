@@ -132,7 +132,8 @@ class SkillLoader:
         """
         import re
 
-        # Pattern 1: Directory-based paths (scripts/, examples/, templates/, reference/)
+        # Pattern 1: Directory-based paths (scripts/, references/, assets/)
+        # See https://agentskills.io/specification#optional-directories
         def replace_dir_path(match):
             prefix = match.group(1)  # e.g., "python " or "`"
             rel_path = match.group(2)  # e.g., "scripts/with_server.py"
@@ -142,7 +143,7 @@ class SkillLoader:
                 return f"{prefix}{abs_path}"
             return match.group(0)
 
-        pattern_dirs = r"(python\s+|`)((?:scripts|examples|templates|reference)/[^\s`\)]+)"
+        pattern_dirs = r"(python\s+|`)((?:scripts|references|assets)/[^\s`\)]+)"
         content = re.sub(pattern_dirs, replace_dir_path, content)
 
         # Pattern 2: Direct markdown/document references (forms.md, reference.md, etc.)
