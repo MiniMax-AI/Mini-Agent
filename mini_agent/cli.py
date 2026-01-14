@@ -13,9 +13,11 @@ import argparse
 import asyncio
 import platform
 import subprocess
+import sys
+import threading
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -79,53 +81,53 @@ def get_log_directory() -> Path:
 
 def show_log_directory(open_file_manager: bool = True) -> None:
     """Show log directory contents and optionally open file manager.
-    
+
     Args:
         open_file_manager: Whether to open the system file manager
     """
     log_dir = get_log_directory()
-    
+
     print(f"\n{Colors.BRIGHT_CYAN}📁 Log Directory: {log_dir}{Colors.RESET}")
-    
+
     if not log_dir.exists() or not log_dir.is_dir():
         print(f"{Colors.RED}Log directory does not exist: {log_dir}{Colors.RESET}\n")
         return
-    
+
     log_files = list(log_dir.glob("*.log"))
-    
+
     if not log_files:
         print(f"{Colors.YELLOW}No log files found in directory.{Colors.RESET}\n")
         return
-    
+
     # Sort by modification time (newest first)
     log_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
-    
+
     print(f"{Colors.DIM}{'─' * 60}{Colors.RESET}")
     print(f"{Colors.BOLD}{Colors.BRIGHT_YELLOW}Available Log Files (newest first):{Colors.RESET}")
-    
+
     for i, log_file in enumerate(log_files[:10], 1):
         mtime = datetime.fromtimestamp(log_file.stat().st_mtime)
         size = log_file.stat().st_size
         size_str = f"{size:,}" if size < 1024 else f"{size / 1024:.1f}K"
         print(f"  {Colors.GREEN}{i:2d}.{Colors.RESET} {Colors.BRIGHT_WHITE}{log_file.name}{Colors.RESET}")
         print(f"      {Colors.DIM}Modified: {mtime.strftime('%Y-%m-%d %H:%M:%S')}, Size: {size_str}{Colors.RESET}")
-    
+
     if len(log_files) > 10:
         print(f"  {Colors.DIM}... and {len(log_files) - 10} more files{Colors.RESET}")
-    
+
     print(f"{Colors.DIM}{'─' * 60}{Colors.RESET}")
-    
+
     # Open file manager
     if open_file_manager:
         _open_directory_in_file_manager(log_dir)
-    
+
     print()
 
 
 def _open_directory_in_file_manager(directory: Path) -> None:
     """Open directory in system file manager (cross-platform)."""
     system = platform.system()
-    
+
     try:
         if system == "Darwin":
             subprocess.run(["open", str(directory)], check=False)
@@ -141,20 +143,20 @@ def _open_directory_in_file_manager(directory: Path) -> None:
 
 def read_log_file(filename: str) -> None:
     """Read and display a specific log file.
-    
+
     Args:
         filename: The log filename to read
     """
     log_dir = get_log_directory()
     log_file = log_dir / filename
-    
+
     if not log_file.exists() or not log_file.is_file():
         print(f"\n{Colors.RED}❌ Log file not found: {log_file}{Colors.RESET}\n")
         return
-    
+
     print(f"\n{Colors.BRIGHT_CYAN}📄 Reading: {log_file}{Colors.RESET}")
     print(f"{Colors.DIM}{'─' * 80}{Colors.RESET}")
-    
+
     try:
         with open(log_file, "r", encoding="utf-8") as f:
             content = f.read()
@@ -198,6 +200,8 @@ def print_help():
   {Colors.BRIGHT_GREEN}/exit{Colors.RESET}      - Exit program (also: exit, quit, q)
 
 {Colors.BOLD}{Colors.BRIGHT_YELLOW}Keyboard Shortcuts:{Colors.RESET}
+  {Colors.BRIGHT_CYAN}Esc{Colors.RESET}        - Cancel current agent execution
+  {Colors.BRIGHT_CYAN}Ctrl+C{Colors.RESET}     - Exit program
   {Colors.BRIGHT_CYAN}Ctrl+U{Colors.RESET}     - Clear current input line
   {Colors.BRIGHT_CYAN}Ctrl+L{Colors.RESET}     - Clear screen
   {Colors.BRIGHT_CYAN}Ctrl+J{Colors.RESET}     - Insert newline (also Ctrl+Enter)
@@ -631,7 +635,6 @@ async def run_agent(workspace_dir: Path):
     while True:
         try:
             # Get user input using prompt_toolkit
-            # Use styled list for robust coloring
             user_input = await session.prompt_async(
                 [
                     ("class:prompt", "You"),
@@ -696,12 +699,89 @@ async def run_agent(workspace_dir: Path):
                 print_stats(agent, session_start)
                 break
 
-            # Run Agent
-            print(f"\n{Colors.BRIGHT_BLUE}Agent{Colors.RESET} {Colors.DIM}›{Colors.RESET} {Colors.DIM}Thinking...{Colors.RESET}\n")
+            # Run Agent with Esc cancellation support
+            print(
+                f"\n{Colors.BRIGHT_BLUE}Agent{Colors.RESET} {Colors.DIM}›{Colors.RESET} {Colors.DIM}Thinking... (Esc to cancel){Colors.RESET}\n"
+            )
             agent.add_user_message(user_input)
-            _ = await agent.run()
 
-            # Visual separation - keep it simple like the reference code
+            # Create cancellation event
+            cancel_event = asyncio.Event()
+            agent.cancel_event = cancel_event
+
+            # Esc key listener thread
+            esc_listener_stop = threading.Event()
+            esc_cancelled = [False]  # Mutable container for thread access
+
+            def esc_key_listener():
+                """Listen for Esc key in a separate thread."""
+                if platform.system() == "Windows":
+                    try:
+                        import msvcrt
+
+                        while not esc_listener_stop.is_set():
+                            if msvcrt.kbhit():
+                                char = msvcrt.getch()
+                                if char == b"\x1b":  # Esc
+                                    print(f"\n{Colors.BRIGHT_YELLOW}⏹️  Esc pressed, cancelling...{Colors.RESET}")
+                                    esc_cancelled[0] = True
+                                    cancel_event.set()
+                                    break
+                            esc_listener_stop.wait(0.05)
+                    except Exception:
+                        pass
+                    return
+
+                # Unix/macOS
+                try:
+                    import select
+                    import termios
+                    import tty
+
+                    fd = sys.stdin.fileno()
+                    old_settings = termios.tcgetattr(fd)
+
+                    try:
+                        tty.setcbreak(fd)
+                        while not esc_listener_stop.is_set():
+                            rlist, _, _ = select.select([sys.stdin], [], [], 0.05)
+                            if rlist:
+                                char = sys.stdin.read(1)
+                                if char == "\x1b":  # Esc
+                                    print(f"\n{Colors.BRIGHT_YELLOW}⏹️  Esc pressed, cancelling...{Colors.RESET}")
+                                    esc_cancelled[0] = True
+                                    cancel_event.set()
+                                    break
+                    finally:
+                        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                except Exception:
+                    pass
+
+            # Start Esc listener thread
+            esc_thread = threading.Thread(target=esc_key_listener, daemon=True)
+            esc_thread.start()
+
+            # Run agent with periodic cancellation check
+            try:
+                agent_task = asyncio.create_task(agent.run())
+
+                # Poll for cancellation while agent runs
+                while not agent_task.done():
+                    if esc_cancelled[0]:
+                        cancel_event.set()
+                    await asyncio.sleep(0.1)
+
+                # Get result
+                _ = agent_task.result()
+
+            except asyncio.CancelledError:
+                print(f"\n{Colors.BRIGHT_YELLOW}⚠️  Agent execution cancelled{Colors.RESET}")
+            finally:
+                agent.cancel_event = None
+                esc_listener_stop.set()
+                esc_thread.join(timeout=0.2)
+
+            # Visual separation
             print(f"\n{Colors.DIM}{'─' * 60}{Colors.RESET}\n")
 
         except KeyboardInterrupt:

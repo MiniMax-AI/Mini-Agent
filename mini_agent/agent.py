@@ -1,8 +1,10 @@
 """Core Agent implementation."""
 
+import asyncio
 import json
 from pathlib import Path
 from time import perf_counter
+from typing import Optional
 
 import tiktoken
 
@@ -57,6 +59,8 @@ class Agent:
         self.max_steps = max_steps
         self.token_limit = token_limit
         self.workspace_dir = Path(workspace_dir)
+        # Cancellation event for interrupting agent execution (set externally, e.g., by Esc key)
+        self.cancel_event: Optional[asyncio.Event] = None
 
         # Ensure workspace exists
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
@@ -82,6 +86,39 @@ class Agent:
     def add_user_message(self, content: str):
         """Add a user message to history."""
         self.messages.append(Message(role="user", content=content))
+
+    def _check_cancelled(self) -> bool:
+        """Check if agent execution has been cancelled.
+
+        Returns:
+            True if cancelled, False otherwise.
+        """
+        if self.cancel_event is not None and self.cancel_event.is_set():
+            return True
+        return False
+
+    def _cleanup_incomplete_messages(self):
+        """Remove the incomplete assistant message and its partial tool results.
+
+        This ensures message consistency after cancellation by removing
+        only the current step's incomplete messages, preserving completed steps.
+        """
+        # Find the index of the last assistant message
+        last_assistant_idx = -1
+        for i in range(len(self.messages) - 1, -1, -1):
+            if self.messages[i].role == "assistant":
+                last_assistant_idx = i
+                break
+
+        if last_assistant_idx == -1:
+            # No assistant message found, nothing to clean
+            return
+
+        # Remove the last assistant message and all tool results after it
+        removed_count = len(self.messages) - last_assistant_idx
+        if removed_count > 0:
+            self.messages = self.messages[:last_assistant_idx]
+            print(f"{Colors.DIM}   Cleaned up {removed_count} incomplete message(s){Colors.RESET}")
 
     def _estimate_tokens(self) -> int:
         """Accurately calculate token count for message history using tiktoken
@@ -167,7 +204,9 @@ class Agent:
         if not should_summarize:
             return
 
-        print(f"\n{Colors.BRIGHT_YELLOW}📊 Token usage - Local estimate: {estimated_tokens}, API reported: {self.api_total_tokens}, Limit: {self.token_limit}{Colors.RESET}")
+        print(
+            f"\n{Colors.BRIGHT_YELLOW}📊 Token usage - Local estimate: {estimated_tokens}, API reported: {self.api_total_tokens}, Limit: {self.token_limit}{Colors.RESET}"
+        )
         print(f"{Colors.BRIGHT_YELLOW}🔄 Triggering message history summarization...{Colors.RESET}")
 
         # Find all user message indices (skip system prompt)
@@ -279,8 +318,21 @@ Requirements:
             # Use simple text summary on failure
             return summary_content
 
-    async def run(self) -> str:
-        """Execute agent loop until task is complete or max steps reached."""
+    async def run(self, cancel_event: Optional[asyncio.Event] = None) -> str:
+        """Execute agent loop until task is complete or max steps reached.
+
+        Args:
+            cancel_event: Optional asyncio.Event that can be set to cancel execution.
+                          When set, the agent will stop at the next safe checkpoint
+                          (after completing the current step to keep messages consistent).
+
+        Returns:
+            The final response content, or error message (including cancellation message).
+        """
+        # Set cancellation event (can also be set via self.cancel_event before calling run())
+        if cancel_event is not None:
+            self.cancel_event = cancel_event
+
         # Start new run, initialize log file
         self.logger.start_new_run()
         print(f"{Colors.DIM}📝 Log file: {self.logger.get_log_file_path()}{Colors.RESET}")
@@ -289,6 +341,13 @@ Requirements:
         run_start_time = perf_counter()
 
         while step < self.max_steps:
+            # Check for cancellation at start of each step
+            if self._check_cancelled():
+                self._cleanup_incomplete_messages()
+                cancel_msg = "Task cancelled by user."
+                print(f"\n{Colors.BRIGHT_YELLOW}⚠️  {cancel_msg}{Colors.RESET}")
+                return cancel_msg
+
             step_start_time = perf_counter()
             # Check and summarize message history to prevent context overflow
             await self._summarize_messages()
@@ -360,6 +419,13 @@ Requirements:
                 total_elapsed = perf_counter() - run_start_time
                 print(f"\n{Colors.DIM}⏱️  Step {step + 1} completed in {step_elapsed:.2f}s (total: {total_elapsed:.2f}s){Colors.RESET}")
                 return response.content
+
+            # Check for cancellation before executing tools
+            if self._check_cancelled():
+                self._cleanup_incomplete_messages()
+                cancel_msg = "Task cancelled by user."
+                print(f"\n{Colors.BRIGHT_YELLOW}⚠️  {cancel_msg}{Colors.RESET}")
+                return cancel_msg
 
             # Execute tool calls
             for tool_call in response.tool_calls:
@@ -433,6 +499,13 @@ Requirements:
                     name=function_name,
                 )
                 self.messages.append(tool_msg)
+
+                # Check for cancellation after each tool execution
+                if self._check_cancelled():
+                    self._cleanup_incomplete_messages()
+                    cancel_msg = "Task cancelled by user."
+                    print(f"\n{Colors.BRIGHT_YELLOW}⚠️  {cancel_msg}{Colors.RESET}")
+                    return cancel_msg
 
             step_elapsed = perf_counter() - step_start_time
             total_elapsed = perf_counter() - run_start_time
