@@ -313,7 +313,7 @@ python -m mini_agent.cli
 ## 相关文档
 
 - [开发指南](docs/DEVELOPMENT_GUIDE_CN.md) - 详细的开发和配置指引
-- [生产环境指南](docs/PRODUCTION_DEPLOYMENT_GUIDE_CN.md) - 生产部署最佳实践
+- [生产环境指南](docs/PRODUCTION_GUIDE_CN.md) - 生产部署最佳实践
 
 ## 社区
 
@@ -334,7 +334,7 @@ python -m mini_agent.cli
 
 ## 参考资源
 
-- MiniMax API: https://platform.minimaxi.com/document
+- MiniMax API: https://platform.minimaxi.com/docs
 - MiniMax-M2: https://github.com/MiniMax-AI/MiniMax-M2
 - Anthropic API: https://docs.anthropic.com/claude/reference
 - Claude Skills: https://github.com/anthropics/skills

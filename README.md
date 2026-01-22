@@ -333,7 +333,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## References
 
-- MiniMax API: https://platform.minimaxi.com/document
+- MiniMax API: https://platform.minimax.io/docs
 - MiniMax-M2: https://github.com/MiniMax-AI/MiniMax-M2
 - Anthropic API: https://docs.anthropic.com/claude/reference
 - Claude Skills: https://github.com/anthropics/skills
