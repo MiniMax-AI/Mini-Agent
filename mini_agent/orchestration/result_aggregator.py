@@ -15,7 +15,7 @@ Result Aggregator - 结果聚合器
 版本：0.6.0
 """
 
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Union
 from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime

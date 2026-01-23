@@ -20,16 +20,13 @@ import sys
 # 添加项目根目录到路径
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from mini_agent import Agent
 from mini_agent.llm import create_llm_client
 from mini_agent.tools import BashTool, ReadTool, WriteTool
 from mini_agent.orchestration import create_orchestrator
 from mini_agent.orchestration.prompts import (
-    get_coordinator_prompt,
     CODER_PROMPT,
     DESIGNER_PROMPT,
     RESEARCHER_PROMPT,
-    TESTER_PROMPT,
 )
 
 
@@ -123,11 +120,11 @@ async def demo_complex_task():
     
     # 6. 查看结果
     if result.get("success"):
-        print(f"\n📊 执行结果:")
+        print("\n📊 执行结果:")
         print(f"   成功: {result.get('success')}")
         print(f"   使用了 {len(result.get('metadata', {}).get('sub_agents_used', []))} 个子代理")
-        
-        print(f"\n📝 主代理响应:")
+
+        print("\n📝 主代理响应:")
         print("-" * 50)
         result_content = result.get('result', '')
         if isinstance(result_content, str):
@@ -135,16 +132,16 @@ async def demo_complex_task():
         print("-" * 50)
     else:
         print(f"\n❌ 任务执行失败: {result.get('error')}")
-    
+
     # 7. 查看状态
-    print(f"\n📈 系统状态:")
+    print("\n📈 系统状态:")
     status = orchestrator.get_status()
     print(f"   子代理数量: {status['sub_agent_count']}")
     print(f"   子代理列表: {', '.join(status['sub_agent_names'])}")
     print(f"   任务历史数: {status['task_history_count']}")
-    
+
     # 8. 查看子代理状态
-    print(f"\n🔍 子代理状态详情:")
+    print("\n🔍 子代理状态详情:")
     sub_status = orchestrator.get_sub_agent_status()
     for name, info in sub_status.items():
         print(f"   - {name}: {info['message_count']} 条消息")
@@ -221,16 +218,16 @@ async def demo_parallel_tasks():
     print("=" * 70)
     
     # 5. 显示执行结果
-    print(f"\n📊 执行统计:")
+    print("\n📊 执行统计:")
     print(f"   执行模式: {result['mode']}")
     print(f"   总任务数: {result['total']}")
     print(f"   成功: {result['success']}")
     print(f"   失败: {result['failed']}")
     print(f"   任务分布: {result['task_breakdown']}")
     print(f"   CPU 利用率: {result['cpu_utilization']}")
-    
+
     # 6. 显示各任务结果
-    print(f"\n📝 详细结果:")
+    print("\n📝 详细结果:")
     for i, task_result in enumerate(result['results'], 1):
         print(f"\n   任务 {i} [{task_result.get('agent', 'unknown')}]")
         print(f"   状态: {'✅ 成功' if task_result.get('success') else '❌ 失败'}")
@@ -286,14 +283,14 @@ async def demo_simple_delegation():
     print("✅ 任务委托完成")
     print("=" * 70)
     
-    print(f"\n📊 执行结果:")
+    print("\n📊 执行结果:")
     print(f"   成功: {result.get('success')}")
     if result.get('success'):
         print(f"   代理: {result.get('agent')}")
         print(f"   结果: {result.get('result', '')[:200]}...")
     else:
         print(f"   错误: {result.get('error')}")
-    
+
     return result
 
 

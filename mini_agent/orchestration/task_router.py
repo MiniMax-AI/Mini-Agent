@@ -15,7 +15,7 @@ Task Router - 任务路由器
 版本：0.6.0
 """
 
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 import re
@@ -529,7 +529,6 @@ class TaskRouter:
         # 统计各代理被选择的次数
         agent_selection_count: Dict[str, int] = {}
         total_confidence = 0
-        cache_hits = 0
         
         for entry in self.route_history:
             result = entry["result"]

@@ -13,12 +13,16 @@ Orchestration Tools - 协调工具集
 版本：0.6.0
 """
 
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, TYPE_CHECKING
 from dataclasses import dataclass
 import asyncio
 import logging
 
 from .base import Tool, ToolResult
+
+if TYPE_CHECKING:
+    from ..agent import Agent
+    from ..orchestration.orchestrator import MultiAgentOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -552,7 +556,7 @@ class GatherResultsTool(Tool):
                     "type": "array",
                     "description": "要收集结果的代理名称列表",
                     "items": {"type": "string"},
-                    "default": list(agents.keys()),
+                    "default": list(self.agents.keys()),
                 },
                 "include_errors": {
                     "type": "boolean",

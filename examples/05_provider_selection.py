@@ -5,7 +5,6 @@ LLM providers (Anthropic or OpenAI) through the provider parameter.
 """
 
 import asyncio
-import os
 from pathlib import Path
 
 import yaml

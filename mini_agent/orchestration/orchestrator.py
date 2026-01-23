@@ -16,7 +16,7 @@ Multi-Agent Orchestrator - 多代理协调器
 版本：0.6.0
 """
 
-from typing import Optional, Dict, List, Any, Union
+from typing import Dict, List, Any
 from pathlib import Path
 import asyncio
 import logging

@@ -12,13 +12,17 @@ Communication Tools - 通信工具集
 版本：0.6.0
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, TYPE_CHECKING
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import logging
 
 from .base import Tool, ToolResult
+
+if TYPE_CHECKING:
+    from ..agent import Agent
+    from ..orchestration.orchestrator import MultiAgentOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -241,7 +245,6 @@ class ShareContextTool(Tool):
         Returns:
             bool: 是否有效
         """
-        from datetime import timedelta
         age = datetime.now() - context.timestamp
         return age.total_seconds() < context.ttl
     
@@ -562,7 +565,7 @@ class SyncStateTool(Tool):
         
         # 格式化结果
         result_lines = [
-            f"状态同步完成",
+            "状态同步完成",
             f"总代理数: {len(agent_names)}",
             f"就绪: {ready_count}",
             f"等待中: {busy_count}",

@@ -29,7 +29,7 @@ from acp import (
     update_tool_call,
 )
 from pydantic import field_validator
-from acp.schema import AgentCapabilities, Implementation, McpCapabilities
+from acp.schema import AgentCapabilities, Implementation
 
 from mini_agent.agent import Agent
 from mini_agent.cli import add_workspace_tools, initialize_base_tools

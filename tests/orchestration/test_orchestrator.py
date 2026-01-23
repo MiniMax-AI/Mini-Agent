@@ -16,7 +16,7 @@ Test Suite for Multi-Agent Orchestration System
 
 import pytest
 import asyncio
-from unittest.mock import Mock, MagicMock, AsyncMock
+from unittest.mock import Mock, AsyncMock
 from pathlib import Path
 import sys
 

@@ -19,14 +19,12 @@ Optimized Executor - Ubuntu 优化的智能混合执行器
 import asyncio
 import os
 import psutil
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, Future
-import re
 import logging
 
 from ..agent import Agent
-from ..tools.base import ToolResult
 
 logger = logging.getLogger(__name__)
 

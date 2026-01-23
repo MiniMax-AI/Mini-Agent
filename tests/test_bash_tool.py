@@ -152,7 +152,6 @@ async def test_bash_output_with_filter():
     output_result = await bash_output_tool.execute(bash_id=bash_id, filter_str="Line [24]")
 
     assert output_result.success
-    lines = output_result.content
     print(f"Filtered output:\n{output_result.content}")
 
     # Clean up
