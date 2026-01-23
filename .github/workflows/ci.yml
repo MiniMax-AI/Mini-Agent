@@ -2,15 +2,19 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
+    branches: [main, develop, feature/**]
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/**'
   pull_request:
-    branches: [main, develop]
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
+    branches: [main, develop, feature/**]
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/**'
 
 jobs:
   lint:
