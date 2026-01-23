@@ -22,6 +22,7 @@ dependencies = [
     "anthropic>=0.39.0",
     "openai>=1.57.4",
     "agent-client-protocol>=0.6.0",
+    "psutil>=5.9.0",
 ]
 
 [project.scripts]
