@@ -1,0 +1,4 @@
+# CI Trigger File
+# 此文件用于触发GitHub Actions CI
+# 创建时间: 2026-01-23
+# 可以安全删除
