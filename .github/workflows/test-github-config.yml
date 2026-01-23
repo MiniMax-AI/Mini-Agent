@@ -1,0 +1,240 @@
+name: GitHub Configuration Test
+
+on:
+  push:
+    branches: [feature/multi-agent-orchestration]
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Test mode'
+        required: true
+        default: 'quick'
+        type: choice
+        options:
+          - quick
+          - full
+
+jobs:
+  test-github-config:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/feature/multi-agent-orchestration'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests httpx
+
+      - name: Test GitHub API Connection
+        run: |
+          python3 -c "
+          import os
+          import urllib.request
+          import json
+
+          print('='*60)
+          print('🧪 测试 1: GitHub API 连接')
+          print('='*60)
+
+          token = os.environ.get('GITHUB_TOKEN')
+          if not token:
+              print('❌ GITHUB_TOKEN 未设置')
+              exit(1)
+
+          print(f'✅ GITHUB_TOKEN 已设置 (前缀: {token[:7]}...)')
+
+          try:
+              url = 'https://api.github.com/user'
+              request = urllib.request.Request(url)
+              request.add_header('Authorization', f'Bearer {token}')
+              request.add_header('Accept', 'application/vnd.github.v3+json')
+
+              with urllib.request.urlopen(request, timeout=10) as response:
+                  data = json.loads(response.read().decode())
+                  print(f'✅ API 连接成功!')
+                  print(f'   用户名: {data.get(\"login\")}')
+                  print(f'   公开仓库: {data.get(\"public_repos\")}')
+                  print(f'   私有仓库: {data.get(\"total_private_repos\", 0)}')
+          except Exception as e:
+              print(f'❌ API 连接失败: {e}')
+              exit(1)
+          "
+
+      - name: Test Repository Access
+        run: |
+          python3 -c "
+          import os
+          import urllib.request
+          import json
+
+          print('='*60)
+          print('🧪 测试 2: 仓库访问权限')
+          print('='*60)
+
+          token = os.environ.get('GITHUB_TOKEN')
+
+          repos_to_test = [
+              ('zhaofei0923/Mini-Agent', '用户仓库'),
+              ('MiniMax-AI/Mini-Agent', '上游仓库'),
+          ]
+
+          for repo, name in repos_to_test:
+              try:
+                  url = f'https://api.github.com/repos/{repo}'
+                  request = urllib.request.Request(url)
+                  request.add_header('Authorization', f'Bearer {token}')
+                  request.add_header('Accept', 'application/vnd.github.v3+json')
+
+                  with urllib.request.urlopen(request, timeout=10) as response:
+                      data = json.loads(response.read().decode())
+                      print(f'✅ {name} 访问成功')
+                      print(f'   仓库: {data[\"full_name\"]}')
+                      print(f'   Stars: {data[\"stargazers_count\"]}')
+              except Exception as e:
+                  print(f'❌ {name} 访问失败: {e}')
+                  exit(1)
+          "
+
+      - name: Test GitHub Operations
+        if: github.event.inputs.test_mode == 'full'
+        run: |
+          python3 -c "
+          import os
+          import urllib.request
+          import json
+          from datetime import datetime
+
+          print('='*60)
+          print('🧪 测试 3: GitHub 操作功能')
+          print('='*60)
+
+          token = os.environ.get('GITHUB_TOKEN')
+
+          # 测试 1: 列出仓库
+          print('\\n📋 测试列出用户仓库...')
+          url = 'https://api.github.com/user/repos?per_page=5&sort=updated'
+          request = urllib.request.Request(url)
+          request.add_header('Authorization', f'Bearer {token}')
+          request.add_header('Accept', 'application/vnd.github.v3+json')
+
+          with urllib.request.urlopen(request, timeout=10) as response:
+              repos = json.loads(response.read().decode())
+              print(f'✅ 成功列出 {len(repos)} 个仓库')
+              for repo in repos[:3]:
+                  print(f'   - {repo[\"full_name\"]}')
+
+          # 测试 2: 列出 Issues
+          print('\\n📝 测试列出 Issues...')
+          url = 'https://api.github.com/repos/zhaofei0923/Mini-Agent/issues?state=all&per_page=5'
+          request = urllib.request.Request(url)
+          request.add_header('Authorization', f'Bearer {token}')
+          request.add_header('Accept', 'application/vnd.github.v3+json')
+
+          with urllib.request.urlopen(request, timeout=10) as response:
+              issues = json.loads(response.read().decode())
+              print(f'✅ 成功列出 {len(issues)} 个 Issues')
+
+          # 测试 3: 列出 Pull Requests
+          print('\\n🔀 测试列出 Pull Requests...')
+          url = 'https://api.github.com/repos/zhaofei0923/Mini-Agent/pulls?state=all&per_page=5'
+          request = urllib.request.Request(url)
+          request.add_header('Authorization', f'Bearer {token}')
+          request.add_header('Accept', 'application/vnd.github.v3+json')
+
+          with urllib.request.urlopen(request, timeout=10) as response:
+              prs = json.loads(response.read().decode())
+              print(f'✅ 成功列出 {len(prs)} 个 Pull Requests')
+              if prs:
+                  print(f'   最新 PR: #{prs[0][\"number\"]} - {prs[0][\"title\"]}')
+
+          # 测试 4: 获取 Actions 工作流
+          print('\\n⚙️ 测试获取 Actions 工作流...')
+          url = 'https://api.github.com/repos/zhaofei0923/Mini-Agent/actions/runs?per_page=3'
+          request = urllib.request.Request(url)
+          request.add_header('Authorization', f'Bearer {token}')
+          request.add_header('Accept', 'application/vnd.github.v3+json')
+
+          with urllib.request.urlopen(request, timeout=10) as response:
+              runs = json.loads(response.read().decode())
+              print(f'✅ 成功获取工作流运行记录')
+              if runs.get('workflow_runs'):
+                  latest = runs['workflow_runs'][0]
+                  print(f'   最新运行: {latest[\"name\"]} - {latest[\"status\"]}')
+
+          print('\\n✅ 所有 GitHub 操作测试通过!')
+          "
+
+      - name: Test MCP Configuration
+        run: |
+          python3 -c "
+          import json
+          from pathlib import Path
+
+          print('='*60)
+          print('🧪 测试 4: MCP 配置验证')
+          print('='*60)
+
+          mcp_path = Path('mini_agent/config/mcp.json')
+
+          if not mcp_path.exists():
+              print('❌ MCP 配置文件不存在')
+              exit(1)
+
+          with open(mcp_path, 'r', encoding='utf-8') as f:
+              mcp_config = json.load(f)
+
+          print('✅ MCP 配置文件读取成功')
+
+          if 'mcpServers' not in mcp_config:
+              print('❌ mcpServers 配置不存在')
+              exit(1)
+
+          servers = mcp_config['mcpServers']
+
+          if 'github' not in servers:
+              print('❌ GitHub MCP 服务器未配置')
+              exit(1)
+
+          github_config = servers['github']
+
+          print('✅ GitHub MCP 服务器已配置')
+
+          # 检查必需字段
+          required_fields = ['command', 'disabled', 'env']
+          for field in required_fields:
+              if field not in github_config:
+                  print(f'❌ GitHub MCP 缺少必要配置: {field}')
+                  exit(1)
+
+          if github_config.get('disabled', False):
+              print('⚠️ GitHub MCP 已禁用')
+              exit(1)
+          else:
+              print('✅ GitHub MCP 已启用')
+
+          print('\\n✅ MCP 配置验证通过!')
+          "
+
+      - name: Summary
+        run: |
+          echo "============================================================"
+          echo "🎉 GitHub 配置测试完成!"
+          echo "============================================================"
+          echo ""
+          echo "✅ GitHub Token 已正确配置"
+          echo "✅ API 连接正常"
+          echo "✅ 仓库访问权限正常"
+          echo "✅ MCP 配置正确"
+          echo ""
+          echo "💡 agent 现在可以:"
+          echo "   - 操作 GitHub 仓库 (创建 PR、提交代码等)"
+          echo "   - 使用 GitHub MCP 工具"
+          echo "   - 触发和管理 GitHub Actions"
