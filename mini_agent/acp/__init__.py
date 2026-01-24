@@ -92,9 +92,27 @@ class MiniMaxACPAgent:
             agentInfo=Implementation(name="mini-agent", title="Mini-Agent", version="0.1.0"),
         )
 
-    async def newSession(self, params: NewSessionRequest) -> NewSessionResponse:
+    async def newSession(self, params: NewSessionRequest | None = None) -> NewSessionResponse:
+        """创建新的会话"""
         session_id = f"sess-{len(self._sessions)}-{uuid4().hex[:8]}"
-        workspace = Path(params.cwd or self._config.agent.workspace_dir).expanduser()
+        
+        # 处理可选参数，支持 None 值
+        if params is not None:
+            # 验证并获取工作目录，支持 None 值
+            if hasattr(params, 'cwd') and params.cwd is not None:
+                workspace = Path(params.cwd).expanduser()
+            else:
+                workspace = Path(self._config.agent.workspace_dir).expanduser()
+        else:
+            workspace = Path(self._config.agent.workspace_dir).expanduser()
+        
+        if not workspace.is_absolute():
+            workspace = workspace.resolve()
+        tools = list(self._base_tools)
+        add_workspace_tools(tools, self._config, workspace)
+        agent = Agent(llm_client=self._llm, system_prompt=self._system_prompt, tools=tools, max_steps=self._config.agent.max_steps, workspace_dir=str(workspace))
+        self._sessions[session_id] = SessionState(agent=agent)
+        return NewSessionResponse(sessionId=session_id)
         if not workspace.is_absolute():
             workspace = workspace.resolve()
         tools = list(self._base_tools)
@@ -108,7 +126,8 @@ class MiniMaxACPAgent:
         if not state:
             # Auto-create session if not found (compatibility with clients that skip newSession)
             logger.warning(f"Session '{params.sessionId}' not found, auto-creating new session")
-            new_session = await self.newSession(NewSessionRequest(cwd=None))
+            # 使用 None 参数让 newSession 使用默认值
+            new_session = await self.newSession(None)
             state = self._sessions.get(new_session.sessionId)
             if not state:
                 logger.error("Failed to auto-create session")
@@ -154,7 +173,22 @@ class MiniMaxACPAgent:
                     text, status = f"❌ Unknown tool: {name}", "failed"
                 else:
                     try:
-                        result = await tool.execute(**args)
+                        # 参数过滤：只传递工具声明支持的参数
+                        import inspect
+                        try:
+                            sig = inspect.signature(tool.execute)
+                            valid_params = set(sig.parameters.keys())
+                            filtered_args = {k: v for k, v in args.items() if k in valid_params}
+                            if len(filtered_args) != len(args):
+                                removed = set(args.keys()) - valid_params
+                                print(f"\033[93m⚠️ Filtered unsupported parameters: {removed}\033[0m")
+                                print(f"   Original: {list(args.keys())}")
+                                print(f"   Filtered: {list(filtered_args.keys())}")
+                        except (ValueError, TypeError) as sig_err:
+                            print(f"\033[93m⚠️ Signature inspection failed: {sig_err}, using original arguments\033[0m")
+                            filtered_args = args
+                        
+                        result = await tool.execute(**filtered_args)
                         status = "completed" if result.success else "failed"
                         prefix = "✅" if result.success else "❌"
                         text = f"{prefix} {result.content if result.success else result.error or 'Tool execution failed'}"

@@ -460,7 +460,40 @@ Requirements:
                 else:
                     try:
                         tool = self.tools[function_name]
-                        result = await tool.execute(**arguments)
+                        
+                        # Filter arguments to only include parameters accepted by the tool's execute method
+                        # This handles cases where the LLM generates extra parameters not in the tool schema
+                        import inspect
+                        try:
+                            # Get the signature of the tool's execute method
+                            sig = inspect.signature(tool.execute)
+                            valid_params = set(sig.parameters.keys())
+                            
+                            # Filter arguments to only include valid parameters
+                            filtered_arguments = {
+                                k: v for k, v in arguments.items() 
+                                if k in valid_params
+                            }
+                            
+                            # Log filtered parameters if any were removed
+                            removed_params = set(arguments.keys()) - valid_params
+                            if removed_params:
+                                print(f"   {Colors.DIM}{Colors.YELLOW}⚠️  过滤了不支持的参数: {', '.join(removed_params)}{Colors.RESET}")
+                                print(f"   {Colors.DIM}原始参数: {arguments}{Colors.RESET}")
+                                print(f"   {Colors.DIM}过滤后参数: {filtered_arguments}{Colors.RESET}")
+                            
+                            # Debug: Print what we're about to execute
+                            print(f"   {Colors.DIM}执行工具: {function_name}{Colors.RESET}")
+                            
+                            result = await tool.execute(**filtered_arguments)
+                        except (ValueError, TypeError) as sig_error:
+                            # If signature inspection fails, fall back to original behavior
+                            print(f"   {Colors.DIM}{Colors.YELLOW}⚠️  签名检查失败，使用原始参数: {sig_error}{Colors.RESET}")
+                            result = await tool.execute(**arguments)
+                        except Exception as exec_error:
+                            # Catch any other errors during execution
+                            print(f"   {Colors.DIM}{Colors.RED}❌ 工具执行错误: {exec_error}{Colors.RESET}")
+                            raise  # Re-raise to be caught by outer exception handler
                     except Exception as e:
                         # Catch all exceptions during tool execution, convert to failed ToolResult
                         import traceback

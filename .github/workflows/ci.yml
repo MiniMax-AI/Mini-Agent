@@ -64,6 +64,61 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
+      - name: Generate test configuration files
+        run: |
+          # Create config directory
+          mkdir -p mini_agent/config
+
+          # Generate minimal config.yaml for CI testing
+          cat > mini_agent/config/config.yaml << 'EOF'
+# CI Test Configuration - Auto-generated
+# This file is used for CI testing only
+
+# API Configuration
+api_key: "${ANTHROPIC_API_KEY:-test-api-key}"
+
+# LLM Configuration
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  api_base: null
+  temperature: 0.7
+  max_tokens: 4096
+
+# Agent Configuration
+agent:
+  max_steps: 10
+  workspace_dir: /tmp/mini-agent-workspace
+  token_limit: 40000
+
+# Retry Configuration
+retry:
+  max_attempts: 1
+  delay: 1.0
+
+# Tools Configuration
+tools:
+  bash:
+    enabled: true
+    timeout: 10
+  read:
+    enabled: true
+  write:
+    enabled: true
+  edit:
+    enabled: true
+EOF
+
+          # Generate minimal mcp.json for CI testing
+          cat > mini_agent/config/mcp.json << 'EOF'
+{
+  "mcpServers": {}
+}
+EOF
+
+          echo "✅ Generated test configuration files"
+          ls -la mini_agent/config/
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -104,6 +159,61 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
+
+      - name: Generate test configuration files
+        run: |
+          # Create config directory
+          mkdir -p mini_agent/config
+
+          # Generate minimal config.yaml for CI testing
+          cat > mini_agent/config/config.yaml << 'EOF'
+# CI Test Configuration - Auto-generated
+# This file is used for CI testing only
+
+# API Configuration
+api_key: "${ANTHROPIC_API_KEY:-test-api-key}"
+
+# LLM Configuration
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  api_base: null
+  temperature: 0.7
+  max_tokens: 4096
+
+# Agent Configuration
+agent:
+  max_steps: 10
+  workspace_dir: /tmp/mini-agent-workspace
+  token_limit: 40000
+
+# Retry Configuration
+retry:
+  max_attempts: 1
+  delay: 1.0
+
+# Tools Configuration
+tools:
+  bash:
+    enabled: true
+    timeout: 10
+  read:
+    enabled: true
+  write:
+    enabled: true
+  edit:
+    enabled: true
+EOF
+
+          # Generate minimal mcp.json for CI testing
+          cat > mini_agent/config/mcp.json << 'EOF'
+{
+  "mcpServers": {}
+}
+EOF
+
+          echo "✅ Generated test configuration files"
+          ls -la mini_agent/config/
 
       - name: Install dependencies
         run: |
