@@ -52,7 +52,7 @@ async def demo_read_tool():
         result = await tool.execute(path=temp_path)
 
         if result.success:
-            print(f"✅ File read successfully")
+            print("✅ File read successfully")
             print(f"Content:\n{result.content}")
         else:
             print(f"❌ Failed: {result.error}")
@@ -79,7 +79,7 @@ async def demo_edit_tool():
         )
 
         if result.success:
-            print(f"✅ File edited successfully")
+            print("✅ File edited successfully")
             print(f"New content:\n{Path(temp_path).read_text()}")
         else:
             print(f"❌ Failed: {result.error}")
@@ -99,7 +99,7 @@ async def demo_bash_tool():
     print("\nCommand: ls -la")
     result = await tool.execute(command="ls -la")
     if result.success:
-        print(f"✅ Command executed successfully")
+        print("✅ Command executed successfully")
         print(f"Output:\n{result.content[:200]}...")
 
     # Example 2: Get current directory

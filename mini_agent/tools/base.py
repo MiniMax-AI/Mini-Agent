@@ -11,6 +11,7 @@ class ToolResult(BaseModel):
     success: bool
     content: str = ""
     error: str | None = None
+    metadata: dict | None = None
 
 
 class Tool:

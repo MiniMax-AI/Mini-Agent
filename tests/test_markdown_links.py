@@ -56,15 +56,15 @@ description: Test skill for Markdown link processing
         skill = skills[0]
         
         # Test 1: Simple filename link
-        assert str(doc_file) in skill.content, f"Test 1 failed: Simple filename link not converted"
+        assert str(doc_file) in skill.content, "Test 1 failed: Simple filename link not converted"
         assert "](reference.md)" not in skill.content, "Test 1 failed: Relative path not replaced"
         
         # Test 2: Link with ./ prefix
-        assert str(ref_file) in skill.content, f"Test 2 failed: ./reference/ link not converted"
+        assert str(ref_file) in skill.content, "Test 2 failed: ./reference/ link not converted"
         assert "](./reference/guide.md)" not in skill.content, "Test 2 failed: ./reference/ path not replaced"
         
         # Test 3: Link with directory path
-        assert str(script_file) in skill.content, f"Test 3 failed: scripts/ link not converted"
+        assert str(script_file) in skill.content, "Test 3 failed: scripts/ link not converted"
         assert "](scripts/helper.js)" not in skill.content, "Test 3 failed: scripts/ path not replaced"
         
         # Test 4: Verify helpful instruction is added
@@ -74,7 +74,7 @@ description: Test skill for Markdown link processing
         print(f"   ✓ Simple filename: {doc_file}")
         print(f"   ✓ With ./ prefix: {ref_file}")
         print(f"   ✓ Directory path: {script_file}")
-        print(f"   ✓ Helpful instructions added")
+        print("   ✓ Helpful instructions added")
 
 
 if __name__ == "__main__":
