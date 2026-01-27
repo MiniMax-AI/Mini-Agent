@@ -21,6 +21,7 @@ dependencies = [
     "pipx>=1.8.0",
     "anthropic>=0.39.0",
     "openai>=1.57.4",
+    "defusedxml>=0.7.1",
     "agent-client-protocol>=0.6.0",
 ]
 
