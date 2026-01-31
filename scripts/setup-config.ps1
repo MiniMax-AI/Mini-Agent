@@ -10,7 +10,7 @@ function Write-ColorOutput {
         [string]$Message,
         [string]$Color = "White"
     )
-    
+
     $colorMap = @{
         "Red" = [ConsoleColor]::Red
         "Green" = [ConsoleColor]::Green
@@ -19,20 +19,21 @@ function Write-ColorOutput {
         "Cyan" = [ConsoleColor]::Cyan
         "White" = [ConsoleColor]::White
     }
-    
+
     Write-Host $Message -ForegroundColor $colorMap[$Color]
 }
 
 # Configuration directory
 $CONFIG_DIR = Join-Path $env:USERPROFILE ".mini-agent\config"
 
-Write-ColorOutput "╔════════════════════════════════════════════════╗" -Color "Cyan"
-Write-ColorOutput "║   Mini Agent Configuration Setup              ║" -Color "Cyan"
-Write-ColorOutput "╚════════════════════════════════════════════════╝" -Color "Cyan"
+Write-ColorOutput "==================================================" -Color "Cyan"
+Write-ColorOutput "   Mini Agent Configuration Setup" -Color "Cyan"
+Write-ColorOutput "==================================================" -Color "Cyan"
 Write-Host ""
 
 # Step 1: Create config directory
 Write-ColorOutput "[1/2] Creating configuration directory..." -Color "Blue"
+
 if (Test-Path $CONFIG_DIR) {
     # Auto backup existing config
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -40,10 +41,10 @@ if (Test-Path $CONFIG_DIR) {
     Write-ColorOutput "   Configuration directory exists, backing up to:" -Color "Yellow"
     Write-ColorOutput "   $BACKUP_DIR" -Color "Yellow"
     Copy-Item -Path $CONFIG_DIR -Destination $BACKUP_DIR -Recurse
-    Write-ColorOutput "   ✓ Backup created" -Color "Green"
+    Write-ColorOutput "   [OK] Backup created" -Color "Green"
 } else {
     New-Item -Path $CONFIG_DIR -ItemType Directory -Force | Out-Null
-    Write-ColorOutput "   ✓ Created: $CONFIG_DIR" -Color "Green"
+    Write-ColorOutput "   [OK] Created: $CONFIG_DIR" -Color "Green"
 }
 
 # Step 2: Download configuration files from GitHub
@@ -57,53 +58,53 @@ try {
     $configUrl = "$GITHUB_RAW_URL/config-example.yaml"
     $configPath = Join-Path $CONFIG_DIR "config.yaml"
     Invoke-WebRequest -Uri $configUrl -OutFile $configPath -UseBasicParsing
-    Write-ColorOutput "   ✓ Downloaded: config.yaml" -Color "Green"
+    Write-ColorOutput "   [OK] Downloaded: config.yaml" -Color "Green"
     $FILES_COPIED++
 } catch {
-    Write-ColorOutput "   ✗ Failed to download: config.yaml" -Color "Red"
+    Write-ColorOutput "   [ERROR] Failed to download: config.yaml" -Color "Red"
 }
 
-# Download mcp-example.json as mcp.json (optional, user should customize)
+# Download mcp-example.json as mcp.json
 try {
     $mcpUrl = "$GITHUB_RAW_URL/mcp-example.json"
     $mcpPath = Join-Path $CONFIG_DIR "mcp.json"
     Invoke-WebRequest -Uri $mcpUrl -OutFile $mcpPath -UseBasicParsing
-    Write-ColorOutput "   ✓ Downloaded: mcp.json (from template)" -Color "Green"
+    Write-ColorOutput "   [OK] Downloaded: mcp.json" -Color "Green"
     $FILES_COPIED++
 } catch {
-    # Optional file, don't show error
+    # Optional file
 }
 
-# Download system_prompt.md (optional)
+# Download system_prompt.md
 try {
     $promptUrl = "$GITHUB_RAW_URL/system_prompt.md"
     $promptPath = Join-Path $CONFIG_DIR "system_prompt.md"
     Invoke-WebRequest -Uri $promptUrl -OutFile $promptPath -UseBasicParsing
-    Write-ColorOutput "   ✓ Downloaded: system_prompt.md" -Color "Green"
+    Write-ColorOutput "   [OK] Downloaded: system_prompt.md" -Color "Green"
     $FILES_COPIED++
 } catch {
-    # Optional file, don't show error
+    # Optional file
 }
 
 if ($FILES_COPIED -eq 0) {
-    Write-ColorOutput "   ✗ Failed to download configuration files" -Color "Red"
+    Write-ColorOutput "   [ERROR] Failed to download configuration files" -Color "Red"
     Write-ColorOutput "   Please check your internet connection" -Color "Yellow"
     exit 1
 }
 
-Write-ColorOutput "   ✓ Configuration files ready" -Color "Green"
+Write-ColorOutput "   [OK] Configuration files ready" -Color "Green"
 
 Write-Host ""
-Write-ColorOutput "╔════════════════════════════════════════════════╗" -Color "Green"
-Write-ColorOutput "║   Setup Complete! ✨                          ║" -Color "Green"
-Write-ColorOutput "╚════════════════════════════════════════════════╝" -Color "Green"
+Write-ColorOutput "==================================================" -Color "Green"
+Write-ColorOutput "   Setup Complete!" -Color "Green"
+Write-ColorOutput "==================================================" -Color "Green"
 Write-Host ""
 Write-Host "Configuration files location:"
 Write-ColorOutput "  $CONFIG_DIR" -Color "Cyan"
 Write-Host ""
 Write-Host "Files:"
 Get-ChildItem $CONFIG_DIR -ErrorAction SilentlyContinue | ForEach-Object {
-    Write-Host "  📄 $($_.Name)"
+    Write-Host "   $($_.Name)"
 }
 Write-Host ""
 Write-ColorOutput "Next Steps:" -Color "Yellow"
