@@ -151,15 +151,15 @@ class MiniMaxACPAgent:
                 await self._send(session_id, start_tool_call(call.id, label, kind="execute", raw_input=args))
                 tool = agent.tools.get(name)
                 if not tool:
-                    text, status = f"❌ Unknown tool: {name}", "failed"
+                    text, status = f"[ERROR] Unknown tool: {name}", "failed"
                 else:
                     try:
                         result = await tool.execute(**args)
                         status = "completed" if result.success else "failed"
-                        prefix = "✅" if result.success else "❌"
+                        prefix = "[OK]" if result.success else "[ERROR]"
                         text = f"{prefix} {result.content if result.success else result.error or 'Tool execution failed'}"
                     except Exception as exc:
-                        status, text = "failed", f"❌ Tool error: {exc}"
+                        status, text = "failed", f"[ERROR] Tool error: {exc}"
                 await self._send(session_id, update_tool_call(call.id, status=status, content=[tool_content(text_block(text))], raw_output=text))
                 agent.messages.append(Message(role="tool", content=text, tool_call_id=call.id, name=name))
         return "max_turn_requests"
