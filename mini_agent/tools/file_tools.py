@@ -268,7 +268,7 @@ class EditTool(Tool):
                     error=f"File not found: {path}",
                 )
 
-            content = file_path.read_text(encoding="utf-8")
+            content = file_path.read_bytes().decode("utf-8")
 
             if old_str not in content:
                 return ToolResult(
@@ -278,7 +278,7 @@ class EditTool(Tool):
                 )
 
             new_content = content.replace(old_str, new_str)
-            file_path.write_text(new_content, encoding="utf-8")
+            file_path.write_bytes(new_content.encode("utf-8"))
 
             return ToolResult(success=True, content=f"Successfully edited {file_path}")
         except Exception as e:

@@ -73,6 +73,27 @@ async def test_edit_tool():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("original", "expected"),
+    [
+        (b"[service]\r\nport=8080\r\nmode=prod\r\n", b"[service]\r\nport=9090\r\nmode=prod\r\n"),
+        (b"[service]\r\nport=8080\nmode=prod\r\n", b"[service]\r\nport=9090\nmode=prod\r\n"),
+    ],
+)
+async def test_edit_tool_preserves_line_endings(tmp_path: Path, original: bytes, expected: bytes):
+    """A targeted replacement must not rewrite untouched line endings."""
+    file_path = tmp_path / "deploy.ini"
+    file_path.write_bytes(original)
+
+    result = await EditTool().execute(
+        path=str(file_path), old_str="port=8080", new_str="port=9090"
+    )
+
+    assert result.success, result.error
+    assert file_path.read_bytes() == expected
+
+
+@pytest.mark.asyncio
 async def test_bash_tool():
     """Test bash command tool."""
     print("\n=== Testing BashTool ===")
