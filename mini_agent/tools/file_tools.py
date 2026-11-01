@@ -270,14 +270,29 @@ class EditTool(Tool):
 
             content = file_path.read_text(encoding="utf-8")
 
-            if old_str not in content:
+            if not old_str:
+                return ToolResult(
+                    success=False,
+                    content="",
+                    error="old_str must not be empty",
+                )
+
+            match_index = content.find(old_str)
+            if match_index == -1:
                 return ToolResult(
                     success=False,
                     content="",
                     error=f"Text not found in file: {old_str}",
                 )
 
-            new_content = content.replace(old_str, new_str)
+            if content.find(old_str, match_index + 1) != -1:
+                return ToolResult(
+                    success=False,
+                    content="",
+                    error="Text appears more than once in file; include more context in old_str",
+                )
+
+            new_content = content.replace(old_str, new_str, 1)
             file_path.write_text(new_content, encoding="utf-8")
 
             return ToolResult(success=True, content=f"Successfully edited {file_path}")

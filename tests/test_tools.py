@@ -73,6 +73,42 @@ async def test_edit_tool():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("original", "old_str"),
+    [
+        (b"def a():\n    return 1\n\ndef b():\n    return 1\n", "return 1"),
+        (b"aaa", "aa"),
+    ],
+)
+async def test_edit_tool_rejects_ambiguous_match(
+    tmp_path: Path, original: bytes, old_str: str
+):
+    """An ambiguous edit must fail without touching the file."""
+    file_path = tmp_path / "app.py"
+    file_path.write_bytes(original)
+
+    result = await EditTool().execute(
+        path=str(file_path), old_str=old_str, new_str="return 2"
+    )
+
+    assert not result.success
+    assert "more than once" in result.error
+    assert file_path.read_bytes() == original
+
+
+@pytest.mark.asyncio
+async def test_edit_tool_rejects_empty_match(tmp_path: Path):
+    """An empty match must fail without inserting text throughout the file."""
+    file_path = tmp_path / "app.py"
+    file_path.write_bytes(b"hello\n")
+
+    result = await EditTool().execute(path=str(file_path), old_str="", new_str="x")
+
+    assert not result.success
+    assert file_path.read_bytes() == b"hello\n"
+
+
+@pytest.mark.asyncio
 async def test_bash_tool():
     """Test bash command tool."""
     print("\n=== Testing BashTool ===")
